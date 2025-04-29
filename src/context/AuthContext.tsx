@@ -120,21 +120,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(true);
     
     try {
-      // Check if admin signup has already been completed
+      // Check if admin_signup record exists in app_settings table
       const { data: settingsData, error: settingsError } = await supabase
         .from('app_settings')
         .select('value')
-        .eq('key', 'admin_signup')
-        .single();
-        
-      if (settingsError) {
-        throw new Error("Failed to check admin signup status");
-      }
+        .eq('key', 'admin_signup');
       
-      // Fix: Properly type and access the JSON value
-      const settingsValue = settingsData?.value as { completed?: boolean };
-      if (settingsValue && settingsValue.completed === true) {
-        throw new Error("Admin signup has already been completed");
+      // If no settings record exists, we need to create it
+      if (settingsError || !settingsData || settingsData.length === 0) {
+        // Create the admin_signup setting since it doesn't exist
+        await supabase
+          .from('app_settings')
+          .insert({ key: 'admin_signup', value: { completed: false } });
+      } else {
+        // Check if an admin has already been set up
+        const settingsValue = settingsData[0]?.value;
+        if (typeof settingsValue === 'object' && settingsValue && 'completed' in settingsValue && settingsValue.completed === true) {
+          throw new Error("Admin signup has already been completed");
+        }
       }
       
       // Create the admin user
