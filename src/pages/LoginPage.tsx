@@ -1,11 +1,42 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import LoginForm from "@/components/auth/LoginForm";
+import { supabase } from "@/integrations/supabase/client";
+import AdminSignupForm from "@/components/auth/AdminSignupForm";
 
 const LoginPage = () => {
   const { isAuthenticated } = useAuth();
+  const [showAdminSignup, setShowAdminSignup] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAdminSignup = async () => {
+      try {
+        const { data: settingsData, error } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'admin_signup')
+          .single();
+        
+        if (!error) {
+          // If settings exist and admin signup isn't completed, show the signup form
+          const settingsValue = settingsData?.value as { completed?: boolean };
+          setShowAdminSignup(!settingsValue || settingsValue.completed !== true);
+        } else {
+          // If no settings found (first time setup), show the signup form
+          setShowAdminSignup(true);
+        }
+      } catch (error) {
+        console.error("Error checking admin signup status:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAdminSignup();
+  }, []);
 
   // Redirect if already logged in
   if (isAuthenticated) {
@@ -24,10 +55,22 @@ const LoginPage = () => {
               </div>
               <span className="font-bold text-2xl">Speech Spark</span>
             </div>
-            <h1 className="text-2xl font-bold">Welcome Back</h1>
-            <p className="text-muted-foreground">Login to access your account</p>
+            <h1 className="text-2xl font-bold">Welcome to Speech Spark</h1>
+            <p className="text-muted-foreground">
+              {isLoading ? "Loading..." : (showAdminSignup ? "Create your admin account to get started" : "Login to access your account")}
+            </p>
           </div>
-          <LoginForm />
+          
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : showAdminSignup ? (
+            <AdminSignupForm onComplete={() => setShowAdminSignup(false)} />
+          ) : (
+            <LoginForm />
+          )}
+          
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>Need help? Contact support at support@speechspark.com</p>
           </div>
