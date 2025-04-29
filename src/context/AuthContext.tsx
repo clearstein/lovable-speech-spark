@@ -131,7 +131,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Failed to check admin signup status");
       }
       
-      if (settingsData && settingsData.value.completed) {
+      // Fix: Properly type and access the JSON value
+      const settingsValue = settingsData?.value as { completed?: boolean };
+      if (settingsValue && settingsValue.completed === true) {
         throw new Error("Admin signup has already been completed");
       }
       
