@@ -8,17 +8,17 @@ const GameCategories = () => {
   const categories = [
     {
       icon: Mic,
-      iconColor: "therapy-purple",
+      iconColor: "therapy-blue",
       title: "Articulation",
       gameCount: 6,
-      hoverColor: "therapy-purple"
+      hoverColor: "therapy-blue"
     },
     {
       icon: BookOpen,
-      iconColor: "therapy-coral",
+      iconColor: "therapy-green",
       title: "Reading Skills",
       gameCount: 8,
-      hoverColor: "therapy-coral"
+      hoverColor: "therapy-green"
     },
     {
       icon: Calendar,
@@ -32,7 +32,7 @@ const GameCategories = () => {
       iconColor: "primary",
       title: "Language",
       gameCount: 5,
-      hoverColor: "primary"
+      hoverColor: "therapy-yellow"
     },
   ];
 

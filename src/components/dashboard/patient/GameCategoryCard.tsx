@@ -14,29 +14,29 @@ interface GameCategoryCardProps {
 
 // Map color names to actual Tailwind classes
 const colorMap = {
-  "therapy-purple": {
-    border: "hover:border-[#FF6FA7]",
-    bg: "bg-[#FF6FA7]/10",
-    hoverBg: "group-hover:bg-[#FF6FA7]/20",
-    text: "text-[#FF6FA7]"
+  "therapy-yellow": {
+    border: "hover:border-[#FCFA0D]",
+    bg: "bg-[#FCFA0D]/10",
+    hoverBg: "group-hover:bg-[#FCFA0D]/20",
+    text: "text-[#FCFA0D]"
   },
   "therapy-blue": {
-    border: "hover:border-blue-500",
-    bg: "bg-blue-100",
-    hoverBg: "group-hover:bg-blue-200",
-    text: "text-blue-500"
+    border: "hover:border-[#0046FF]",
+    bg: "bg-[#0046FF]/10",
+    hoverBg: "group-hover:bg-[#0046FF]/20",
+    text: "text-[#0046FF]"
   },
   "therapy-orange": {
-    border: "hover:border-[#FFA552]",
-    bg: "bg-[#FFA552]/10",
-    hoverBg: "group-hover:bg-[#FFA552]/20",
-    text: "text-[#FFA552]"
+    border: "hover:border-[#FF7906]",
+    bg: "bg-[#FF7906]/10",
+    hoverBg: "group-hover:bg-[#FF7906]/20",
+    text: "text-[#FF7906]"
   },
-  "therapy-coral": {
-    border: "hover:border-[#FF6B6B]",
-    bg: "bg-[#FF6B6B]/10",
-    hoverBg: "group-hover:bg-[#FF6B6B]/20",
-    text: "text-[#FF6B6B]"
+  "therapy-green": {
+    border: "hover:border-[#75D21C]",
+    bg: "bg-[#75D21C]/10",
+    hoverBg: "group-hover:bg-[#75D21C]/20",
+    text: "text-[#75D21C]"
   },
   "primary": {
     border: "hover:border-primary",

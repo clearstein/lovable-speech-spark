@@ -64,13 +64,12 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				therapy: {
-					pink: '#FF6FA7',   // Updated to new pink
-					coral: '#FF6B6B',  // Added new coral color
-					orange: '#FFA552', // Updated to new orange
-					green: '#A1EEBD',  // Kept existing green
-					blue: '#7BD3EA',   // Kept existing blue
-					light: '#F1F0FB',  // Kept existing light
-					dark: '#1A1F2C',   // Kept existing dark
+					yellow: '#FCFA0D',   // New bright yellow
+					orange: '#FF7906',   // New orange
+					green: '#75D21C',    // New green
+					blue: '#0046FF',     // New blue
+					light: '#F1F0FB',    // Kept existing light
+					dark: '#1A1F2C',     // Kept existing dark
 				}
 			},
 			borderRadius: {
@@ -114,3 +113,4 @@ export default {
 	},
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+
