@@ -1,55 +1,16 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import LoginForm from "@/components/auth/LoginForm";
-import { supabase } from "@/integrations/supabase/client";
 
 const LoginPage = () => {
   const { isAuthenticated } = useAuth();
-  const [isAdminSetup, setIsAdminSetup] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAdminSetup = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('value')
-          .eq('key', 'admin_signup')
-          .single();
-
-        if (error) {
-          console.error("Error checking admin setup:", error);
-          // If no record exists, admin setup is needed
-          setIsAdminSetup(false);
-        } else {
-          // Safely check if value is an object with completed property
-          const value = data?.value as Record<string, unknown>;
-          const completed = value && typeof value === 'object' && 'completed' in value 
-            ? Boolean(value.completed) 
-            : false;
-          setIsAdminSetup(completed);
-        }
-      } catch (error) {
-        console.error("Error checking admin setup:", error);
-        setIsAdminSetup(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAdminSetup();
-  }, []);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Redirect if already logged in
   if (isAuthenticated) {
     return <Navigate to="/app/dashboard" replace />;
-  }
-
-  // Redirect to admin signup if admin is not set up
-  if (isAdminSetup === false) {
-    return <Navigate to="/admin-signup" replace />;
   }
 
   if (isLoading) {
@@ -87,7 +48,7 @@ const LoginPage = () => {
       </div>
 
       {/* Right side - Image/Illustration */}
-      <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-primary to-therapy-purple p-8">
+      <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-primary to-therapy-yellow p-8">
         <div className="h-full flex flex-col items-center justify-center text-white">
           <div className="max-w-lg">
             <h2 className="text-3xl font-bold mb-4">Making Speech Therapy Engaging</h2>

@@ -13,39 +13,6 @@ export async function determineUserRole(session: any): Promise<UserRole> {
     return role; // Return immediately if role is found in app_metadata
   }
   
-  // If not in app_metadata, check app_settings table for admin
-  try {
-    const { data: settingsData } = await supabase
-      .from('app_settings')
-      .select('value')
-      .eq('key', 'admin_signup')
-      .single();
-    
-    // Safely check if the value is an object with the needed properties
-    const settingsValue = settingsData?.value as Record<string, unknown>;
-    
-    if (settingsValue && 
-        typeof settingsValue === 'object' && 
-        'completed' in settingsValue && 
-        settingsValue.completed === true &&
-        'admin_email' in settingsValue &&
-        session.user.email === settingsValue.admin_email) {
-      // This is the admin user from app_settings
-      console.log("Found admin in app_settings:", session.user.email);
-      role = 'admin';
-      
-      // Update the role in app_metadata for future logins
-      await supabase.rpc('set_user_role', { 
-        user_id: session.user.id, 
-        role: 'admin' 
-      });
-      
-      return role;
-    }
-  } catch (error) {
-    console.error("Error checking admin status:", error);
-  }
-
   // If we've fallen through to here, check for mock users
   // This is helpful for development/testing
   const storedUser = getStoredUserData();

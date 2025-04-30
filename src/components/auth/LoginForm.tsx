@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,46 +9,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import { Json } from "@/integrations/supabase/types";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isAdminSetup, setIsAdminSetup] = useState<boolean | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const checkAdminSetup = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('value')
-          .eq('key', 'admin_signup')
-          .single();
-
-        if (error) {
-          // If no record exists, admin setup is needed
-          setIsAdminSetup(false);
-        } else {
-          // Safely check if value is an object with completed property
-          const value = data?.value as Record<string, unknown>;
-          setIsAdminSetup(value && typeof value === 'object' && 'completed' in value 
-            ? Boolean(value.completed) 
-            : false);
-        }
-      } catch (error) {
-        console.error("Error checking admin setup:", error);
-        setIsAdminSetup(false);
-      }
-    };
-
-    checkAdminSetup();
-  }, []);
 
   const handleResetPassword = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -183,11 +152,7 @@ const LoginForm = () => {
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-sm text-center text-muted-foreground">
-          {isAdminSetup === false ? (
-            <p>First time setup? <Link to="/admin-signup" className="text-primary hover:underline">Create admin account</Link></p>
-          ) : (
-            <p>Don't have an account? Contact your administrator.</p>
-          )}
+          <p>Don't have an account? Contact your administrator.</p>
         </div>
       </CardFooter>
     </Card>
