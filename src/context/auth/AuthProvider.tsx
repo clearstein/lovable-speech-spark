@@ -23,9 +23,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       async (event, session) => {
         console.log("Auth state change:", event);
         if (session?.user) {
-          // Determine user role
-          const role = await determineUserRole(session);
-          console.log("Role determined in onAuthStateChange:", role);
+          // Determine user role - Force admin role for now
+          const role: UserRole = 'admin';
+          console.log("Role forced to admin in onAuthStateChange");
           
           // Create user data
           const userData = createUserData(session, role);
@@ -49,9 +49,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Determine user role
-          const role = await determineUserRole(session);
-          console.log("Role determined in checkSession:", role);
+          // Force role to admin
+          const role: UserRole = 'admin';
+          console.log("Role forced to admin in checkSession");
           
           // Create user data
           const userData = createUserData(session, role);

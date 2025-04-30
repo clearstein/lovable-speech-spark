@@ -13,11 +13,6 @@ const Dashboard = () => {
     console.log("Current user data:", currentUser);
   }, [userRole, currentUser]);
 
-  // Force admin dashboard for now
-  if (true) {
-    return <AdminDashboard />;
-  }
-
   // Render the appropriate dashboard based on user role
   switch (userRole) {
     case "admin":

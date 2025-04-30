@@ -15,15 +15,16 @@ export async function determineUserRole(session: any): Promise<UserRole> {
   
   // If we've fallen through to here, check for role in user_roles table
   try {
-    const { data: userRoles, error } = await supabase
+    // Use a more type-safe approach for querying
+    const { data, error } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', session.user.id)
       .single();
     
-    if (!error && userRoles) {
-      console.log("Found role in user_roles table:", userRoles.role);
-      role = userRoles.role as UserRole;
+    if (!error && data) {
+      console.log("Found role in user_roles table:", data.role);
+      role = data.role as UserRole;
       return role;
     }
   } catch (error) {
