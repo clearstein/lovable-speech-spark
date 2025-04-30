@@ -46,7 +46,7 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
     console.log("Creating therapist with data:", JSON.stringify(therapistData));
     
     // First create the user account in Supabase Auth
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email: therapistData.email,
       password: therapistData.password,
       options: {
@@ -62,17 +62,17 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
       throw signUpError;
     }
     
-    if (!signUpData.user) {
+    if (!authData.user) {
       throw new Error("Failed to create user account");
     }
     
-    console.log("Created auth user:", signUpData.user.id);
+    console.log("Created auth user:", authData.user.id);
     
     // Then create the therapist record in our therapists table
     const { data, error } = await supabase
       .from('therapists')
       .insert({
-        id: signUpData.user.id,
+        id: authData.user.id,
         name: therapistData.name,
         email: therapistData.email,
         license: therapistData.license || null,
@@ -85,37 +85,6 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
     if (error) {
       console.error("Error creating therapist record:", error);
       return null;
-    }
-    
-    console.log("Created therapist record:", data);
-    
-    // Set user email as confirmed
-    const { error: updateError } = await supabase.auth.updateUser({
-      email: therapistData.email,
-      data: { email_confirmed: true }
-    });
-    
-    if (updateError) {
-      console.error("Error confirming email:", updateError);
-    }
-    
-    // Set the user role to therapist using RPC if available
-    try {
-      await supabase.rpc('set_user_role', {
-        user_id: signUpData.user.id,
-        role: 'therapist'
-      });
-    } catch (rpcError) {
-      console.error("Error setting role via RPC:", rpcError);
-      
-      // Fallback: update user metadata directly
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: { role: 'therapist' }
-      });
-      
-      if (metadataError) {
-        console.error("Error updating user metadata:", metadataError);
-      }
     }
     
     return data as Therapist;
@@ -153,7 +122,7 @@ export async function updateTherapist(therapistData: UpdateTherapistData): Promi
 
 export async function deleteTherapist(id: string): Promise<boolean> {
   try {
-    // Delete from therapists table
+    // Delete from therapists table first
     const { error: dbError } = await supabase
       .from('therapists')
       .delete()
@@ -162,18 +131,6 @@ export async function deleteTherapist(id: string): Promise<boolean> {
     if (dbError) {
       console.error("Error deleting therapist from database:", dbError);
       return false;
-    }
-    
-    // Try to delete the auth user with admin API
-    const { error: authError } = await supabase.auth.admin.deleteUser(id);
-    
-    // If admin API fails, try to handle it gracefully
-    if (authError) {
-      console.error("Error deleting therapist from auth (admin):", authError);
-      
-      // We successfully deleted from the therapists table, so return true even though
-      // we couldn't delete from Auth (this might require manual cleanup later)
-      return true;
     }
     
     return true;

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createTherapist } from "@/services/therapist-service";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -34,29 +34,26 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
     mutationFn: createTherapist,
     onSuccess: (data) => {
       if (!data) {
-        toast({
-          title: "Error creating therapist",
-          description: "Failed to create therapist record. Please try again.",
-          variant: "destructive"
-        });
+        toast.error("Failed to create therapist record. Please try again.");
         return;
       }
       
-      toast({
-        title: "Therapist created",
-        description: `${data.name} has been successfully added as a therapist`
-      });
+      toast.success(`${data.name} has been successfully added as a therapist`);
       queryClient.invalidateQueries({ queryKey: ['therapists'] });
       onClose();
       resetForm();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error creating therapist:", error);
-      toast({
-        title: "Failed to create therapist",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      });
+      
+      // Handle specific error messages from Supabase
+      if (error?.message?.includes('User already registered')) {
+        setValidationError('This email is already registered. Please use a different email.');
+      } else if (error?.message?.includes('Password should be at least')) {
+        setValidationError('Password should be at least 6 characters long.');
+      } else {
+        toast.error(error?.message || "An unexpected error occurred");
+      }
     }
   });
   
@@ -144,6 +141,15 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
             <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          )}
+          
+          {createTherapistMutation.isError && !validationError && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Failed to create therapist. Please try again.
+              </AlertDescription>
             </Alert>
           )}
           
