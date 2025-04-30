@@ -57,10 +57,10 @@ const TherapistsPage = () => {
     }
   });
 
-  const filteredTherapists = therapists.filter(therapist => 
+  const filteredTherapists = therapists.length > 0 ? therapists.filter(therapist => 
     therapist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (therapist.specialty && therapist.specialty.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  ) : [];
 
   if (isLoading) {
     return (

@@ -1,143 +1,134 @@
 
 import { Exercise, ExerciseCategory, ExerciseAssignment, ExerciseProgress } from "@/types/exercise";
-
-// Mock data for exercise categories
-const mockCategories: ExerciseCategory[] = [
-  {
-    id: "1",
-    name: "Langage oral",
-    description: "Exercises focused on oral language development",
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "2",
-    name: "Compréhension orale",
-    description: "Exercises for listening comprehension",
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "3",
-    name: "Mémoire",
-    description: "Exercises for memory improvement",
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "4",
-    name: "Langage écrit",
-    description: "Exercises for writing skills",
-    created_at: new Date().toISOString()
-  }
-];
-
-// Mock data for exercises
-const mockExercises: Exercise[] = [
-  {
-    id: "1",
-    title: "Word Association Game",
-    description: "Find related words to improve vocabulary",
-    category_id: "1",
-    difficulty: "Easy",
-    type: "Interactive",
-    content: { words: ["cat", "dog", "bird"] },
-    settings: { timeLimit: 60 },
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "2",
-    title: "Listen and Recall",
-    description: "Listen to a story and recall details",
-    category_id: "2",
-    difficulty: "Medium",
-    type: "Audio",
-    content: { audioUrl: "story1.mp3", questions: [] },
-    settings: { pauseEnabled: true },
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "3",
-    title: "Memory Patterns",
-    description: "Remember and repeat visual patterns",
-    category_id: "3",
-    difficulty: "Hard",
-    type: "Visual",
-    content: { patterns: [] },
-    settings: { speed: "medium" },
-    created_at: new Date().toISOString()
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
 
 export async function getExerciseCategories(): Promise<ExerciseCategory[]> {
-  // Simulate API call
-  return new Promise(resolve => {
-    setTimeout(() => resolve(mockCategories), 300);
-  });
+  try {
+    const { data, error } = await supabase
+      .from('exercise_categories')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error("Error fetching exercise categories:", error);
+      return [];
+    }
+    
+    return data as ExerciseCategory[];
+  } catch (error) {
+    console.error("Exception fetching exercise categories:", error);
+    return [];
+  }
 }
 
 export async function getExercises(): Promise<Exercise[]> {
-  // Simulate API call
-  return new Promise(resolve => {
-    setTimeout(() => resolve(mockExercises), 300);
-  });
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('*')
+      .order('title');
+    
+    if (error) {
+      console.error("Error fetching exercises:", error);
+      return [];
+    }
+    
+    return data as Exercise[];
+  } catch (error) {
+    console.error("Exception fetching exercises:", error);
+    return [];
+  }
 }
 
 export async function getExerciseById(id: string): Promise<Exercise | null> {
-  // Simulate API call
-  return new Promise(resolve => {
-    const exercise = mockExercises.find(ex => ex.id === id) || null;
-    setTimeout(() => resolve(exercise), 200);
-  });
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching exercise by ID:", error);
+      return null;
+    }
+    
+    return data as Exercise;
+  } catch (error) {
+    console.error("Exception fetching exercise by ID:", error);
+    return null;
+  }
 }
 
 export async function createExercise(exercise: Partial<Exercise>): Promise<Exercise> {
-  // Simulate API call
-  return new Promise(resolve => {
-    const newExercise: Exercise = {
-      id: Math.random().toString(36).substring(2, 9),
-      title: exercise.title || "New Exercise",
-      category_id: exercise.category_id || "1",
-      difficulty: exercise.difficulty || "Medium",
-      type: exercise.type || "Interactive",
-      content: exercise.content || {},
-      settings: exercise.settings || {},
-      description: exercise.description,
-      created_at: new Date().toISOString(),
-      created_by: exercise.created_by
-    };
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .insert({
+        title: exercise.title || "New Exercise",
+        category_id: exercise.category_id || undefined,
+        difficulty: exercise.difficulty || "Medium",
+        type: exercise.type || "Interactive",
+        content: exercise.content || {},
+        settings: exercise.settings || {},
+        description: exercise.description,
+        created_by: exercise.created_by
+      })
+      .select()
+      .single();
     
-    mockExercises.push(newExercise);
-    setTimeout(() => resolve(newExercise), 300);
-  });
+    if (error) {
+      console.error("Error creating exercise:", error);
+      throw error;
+    }
+    
+    return data as Exercise;
+  } catch (error) {
+    console.error("Exception creating exercise:", error);
+    throw error;
+  }
 }
 
 export async function updateExercise(id: string, exercise: Partial<Exercise>): Promise<Exercise> {
-  // Simulate API call
-  return new Promise(resolve => {
-    const existingExerciseIndex = mockExercises.findIndex(ex => ex.id === id);
-    if (existingExerciseIndex !== -1) {
-      const updatedExercise = { 
-        ...mockExercises[existingExerciseIndex], 
-        ...exercise 
-      } as Exercise;
-      
-      mockExercises[existingExerciseIndex] = updatedExercise;
-      setTimeout(() => resolve(updatedExercise), 300);
-    } else {
-      // Return the original exercise if not found
-      setTimeout(() => resolve(mockExercises[0]), 300);
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .update(exercise)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating exercise:", error);
+      throw error;
     }
-  });
+    
+    return data as Exercise;
+  } catch (error) {
+    console.error("Exception updating exercise:", error);
+    throw error;
+  }
 }
 
 export async function deleteExercise(id: string): Promise<void> {
-  // Simulate API call
-  return new Promise(resolve => {
-    const index = mockExercises.findIndex(ex => ex.id === id);
-    if (index !== -1) {
-      mockExercises.splice(index, 1);
+  try {
+    const { error } = await supabase
+      .from('exercises')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error("Error deleting exercise:", error);
+      throw error;
     }
-    setTimeout(() => resolve(), 200);
-  });
+  } catch (error) {
+    console.error("Exception deleting exercise:", error);
+    throw error;
+  }
 }
+
+// The functions below are kept with mock implementations for now
+// since we haven't created these tables in the database yet
 
 export async function getAssignments(patientId?: string): Promise<ExerciseAssignment[]> {
   // Simulate API call with empty array for now

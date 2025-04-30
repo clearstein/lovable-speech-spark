@@ -33,6 +33,134 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      exercises: {
+        Row: {
+          category_id: string | null
+          content: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          difficulty: string
+          id: string
+          settings: Json | null
+          title: string
+          type: string
+        }
+        Insert: {
+          category_id?: string | null
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty: string
+          id?: string
+          settings?: Json | null
+          title: string
+          type: string
+        }
+        Update: {
+          category_id?: string | null
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty?: string
+          id?: string
+          settings?: Json | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          language: string
+          notifications_enabled: boolean
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          language?: string
+          notifications_enabled?: boolean
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          language?: string
+          notifications_enabled?: boolean
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

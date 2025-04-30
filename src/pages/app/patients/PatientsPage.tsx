@@ -53,9 +53,9 @@ const PatientsPage = () => {
     }
   });
 
-  const filteredPatients = patients.filter(patient => 
+  const filteredPatients = patients.length > 0 ? patients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) : [];
 
   if (isLoading) {
     return (
