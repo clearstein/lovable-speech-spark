@@ -104,7 +104,7 @@ export const useAuthOperations = () => {
           .insert({ key: 'admin_signup', value: { completed: false } });
       } else {
         // Check if an admin has already been set up
-        const settingsValue = settingsData[0]?.value;
+        const settingsValue = settingsData[0]?.value as Record<string, unknown>;
         if (typeof settingsValue === 'object' && settingsValue && 'completed' in settingsValue && settingsValue.completed === true) {
           throw new Error("Admin signup has already been completed");
         }

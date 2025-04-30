@@ -46,32 +46,24 @@ const AdminDashboard = () => {
       
       try {
         // In a real application, these would fetch from specific tables
-        // For now, we'll simulate with dummy counts that will be replaced with real queries
+        // For now, we'll use dummy counts until we add the tables to Supabase
         
-        const { count: therapistCount } = await supabase
-          .from('user_roles')
-          .select('*', { count: 'exact', head: true })
-          .eq('role', 'therapist');
-        
-        const { count: patientCount } = await supabase
-          .from('user_roles')
-          .select('*', { count: 'exact', head: true })
-          .eq('role', 'patient');
-        
-        const { count: exerciseCount } = await supabase
-          .from('exercises')
-          .select('*', { count: 'exact', head: true });
+        // We cannot directly query these tables as they don't exist yet in the Supabase schema
+        // So we'll use mock data for now
+        const therapistCount = 5; // Mock data
+        const patientCount = 12;  // Mock data
+        const exerciseCount = 23; // Mock data
         
         // Generate dummy data for charts - in a real app this would come from Supabase
         const activityData = generateActivityData();
         const userGrowthData = generateUserGrowthData();
         
         setStats({
-          therapistCount: therapistCount || 0,
+          therapistCount: therapistCount,
           newTherapists: 2, // This would be calculated from a date range query
-          patientCount: patientCount || 0,
+          patientCount: patientCount,
           newPatients: 14, // This would be calculated from a date range query
-          exerciseCount: exerciseCount || 0,
+          exerciseCount: exerciseCount,
           sessionsToday: 37, // This would come from a real sessions table
           sessionsYesterday: 32 // This would come from a real sessions table with date filter
         });

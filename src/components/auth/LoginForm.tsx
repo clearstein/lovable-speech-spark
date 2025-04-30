@@ -10,6 +10,7 @@ import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { Json } from "@/integrations/supabase/types";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -34,7 +35,11 @@ const LoginForm = () => {
           // If no record exists, admin setup is needed
           setIsAdminSetup(false);
         } else {
-          setIsAdminSetup(data?.value?.completed === true);
+          // Safely check if value is an object with completed property
+          const value = data?.value as Record<string, unknown>;
+          setIsAdminSetup(value && typeof value === 'object' && 'completed' in value 
+            ? Boolean(value.completed) 
+            : false);
         }
       } catch (error) {
         console.error("Error checking admin setup:", error);

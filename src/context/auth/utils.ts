@@ -20,12 +20,16 @@ export async function determineUserRole(session: any): Promise<UserRole> {
       .select('value')
       .eq('key', 'admin_signup')
       .single();
-        
-    if (settingsData?.value && 
-        typeof settingsData.value === 'object' && 
-        'completed' in settingsData.value && 
-        settingsData.value.completed === true &&
-        session.user.email === settingsData.value.admin_email) {
+    
+    // Safely check if the value is an object with the needed properties
+    const settingsValue = settingsData?.value as Record<string, unknown>;
+    
+    if (settingsValue && 
+        typeof settingsValue === 'object' && 
+        'completed' in settingsValue && 
+        settingsValue.completed === true &&
+        'admin_email' in settingsValue &&
+        session.user.email === settingsValue.admin_email) {
       // This is the admin user from app_settings
       console.log("Found admin in app_settings:", session.user.email);
       role = 'admin';

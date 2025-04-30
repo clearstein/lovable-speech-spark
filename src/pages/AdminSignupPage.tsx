@@ -24,7 +24,11 @@ const AdminSignupPage = () => {
           // If no record exists, admin setup is needed
           setIsAdminSetup(false);
         } else {
-          const completed = data?.value?.completed === true;
+          // Safely check if value is an object with completed property
+          const value = data?.value as Record<string, unknown>;
+          const completed = value && typeof value === 'object' && 'completed' in value 
+            ? Boolean(value.completed) 
+            : false;
           setIsAdminSetup(completed);
         }
       } catch (error) {
