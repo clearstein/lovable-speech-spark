@@ -15,10 +15,10 @@ const GameCategories = () => {
     },
     {
       icon: BookOpen,
-      iconColor: "therapy-blue",
+      iconColor: "therapy-coral",
       title: "Reading Skills",
       gameCount: 8,
-      hoverColor: "therapy-blue"
+      hoverColor: "therapy-coral"
     },
     {
       icon: Calendar,

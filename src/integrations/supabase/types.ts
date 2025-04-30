@@ -234,6 +234,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_therapist: {
+        Args: {
+          name: string
+          email: string
+          password: string
+          license: string
+          specialty: string
+          active?: boolean
+        }
+        Returns: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          license: string | null
+          name: string
+          specialty: string | null
+        }
+      }
+      get_therapists: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          license: string | null
+          name: string
+          specialty: string | null
+        }[]
+      }
       set_user_role: {
         Args: { user_id: string; role: string }
         Returns: undefined

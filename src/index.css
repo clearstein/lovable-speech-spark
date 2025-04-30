@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,16 +14,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 0 79% 84%;
+    --primary: 0 100% 70%;  /* Based on #FF6B6B */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 193 73% 70%;
+    --secondary: 30 100% 66%;  /* Based on #FFA552 */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 62 80% 95%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 133 74% 78%;
+    --accent: 338 100% 72%;  /* Based on #FF6FA7 */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -30,18 +31,18 @@
 
     --border: 0 79% 90%;
     --input: 0 79% 90%;
-    --ring: 0 79% 84%;
+    --ring: 0 100% 70%;  /* Based on #FF6B6B */
 
     --radius: 1rem;
 
-    --sidebar-background: 0 79% 84%;
+    --sidebar-background: 0 100% 70%;  /* Based on #FF6B6B */
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 79% 74%;
+    --sidebar-primary: 0 100% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 79% 79%;
+    --sidebar-accent: 0 100% 75%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 79% 77%;
-    --sidebar-ring: 0 91% 85%;
+    --sidebar-border: 0 100% 60%;
+    --sidebar-ring: 0 100% 80%;
   }
 
   .dark {
@@ -54,16 +55,16 @@
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 0 79% 84%;
+    --primary: 0 100% 70%;  /* Based on #FF6B6B */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 193 73% 70%;
+    --secondary: 30 100% 66%;  /* Based on #FFA552 */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 217 33% 18%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 133 74% 78%;
+    --accent: 338 100% 72%;  /* Based on #FF6FA7 */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 63% 31%;
@@ -71,16 +72,16 @@
 
     --border: 217 33% 25%;
     --input: 217 33% 25%;
-    --ring: 0 79% 84%;
+    --ring: 0 100% 70%;  /* Based on #FF6B6B */
 
-    --sidebar-background: 0 79% 64%;
+    --sidebar-background: 0 100% 60%;  /* Slightly darker version of #FF6B6B */
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 79% 74%;
+    --sidebar-primary: 0 100% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 79% 69%;
+    --sidebar-accent: 0 100% 55%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 79% 57%;
-    --sidebar-ring: 0 91% 80%;
+    --sidebar-border: 0 100% 50%;
+    --sidebar-ring: 0 100% 75%;
   }
 }
 

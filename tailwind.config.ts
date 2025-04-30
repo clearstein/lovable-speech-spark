@@ -64,12 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				therapy: {
-					pink: '#F6F7C4',
-					yellow: '#F6F7C4',
-					green: '#A1EEBD',
-					blue: '#7BD3EA',
-					light: '#F1F0FB',
-					dark: '#1A1F2C',
+					pink: '#FF6FA7',   // Updated to new pink
+					coral: '#FF6B6B',  // Added new coral color
+					orange: '#FFA552', // Updated to new orange
+					green: '#A1EEBD',  // Kept existing green
+					blue: '#7BD3EA',   // Kept existing blue
+					light: '#F1F0FB',  // Kept existing light
+					dark: '#1A1F2C',   // Kept existing dark
 				}
 			},
 			borderRadius: {

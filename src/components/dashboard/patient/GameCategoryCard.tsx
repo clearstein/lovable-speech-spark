@@ -15,10 +15,10 @@ interface GameCategoryCardProps {
 // Map color names to actual Tailwind classes
 const colorMap = {
   "therapy-purple": {
-    border: "hover:border-purple-500",
-    bg: "bg-purple-100",
-    hoverBg: "group-hover:bg-purple-200",
-    text: "text-purple-500"
+    border: "hover:border-[#FF6FA7]",
+    bg: "bg-[#FF6FA7]/10",
+    hoverBg: "group-hover:bg-[#FF6FA7]/20",
+    text: "text-[#FF6FA7]"
   },
   "therapy-blue": {
     border: "hover:border-blue-500",
@@ -27,10 +27,16 @@ const colorMap = {
     text: "text-blue-500"
   },
   "therapy-orange": {
-    border: "hover:border-orange-500",
-    bg: "bg-orange-100",
-    hoverBg: "group-hover:bg-orange-200",
-    text: "text-orange-500"
+    border: "hover:border-[#FFA552]",
+    bg: "bg-[#FFA552]/10",
+    hoverBg: "group-hover:bg-[#FFA552]/20",
+    text: "text-[#FFA552]"
+  },
+  "therapy-coral": {
+    border: "hover:border-[#FF6B6B]",
+    bg: "bg-[#FF6B6B]/10",
+    hoverBg: "group-hover:bg-[#FF6B6B]/20",
+    text: "text-[#FF6B6B]"
   },
   "primary": {
     border: "hover:border-primary",
