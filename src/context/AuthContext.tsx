@@ -53,12 +53,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for stored user in localStorage
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Initialize auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session?.user) {
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata.name || 'User',
+            role: (session.user.app_metadata.role as UserRole) || 'patient',
+          };
+          setCurrentUser(userData);
+          localStorage.setItem("currentUser", JSON.stringify(userData));
+        } else {
+          setCurrentUser(null);
+          localStorage.removeItem("currentUser");
+        }
+      }
+    );
+    
+    // Check for existing session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata.name || 'User',
+            role: (session.user.app_metadata.role as UserRole) || 'patient',
+          };
+          setCurrentUser(userData);
+          localStorage.setItem("currentUser", JSON.stringify(userData));
+        } else {
+          // Check for stored user in localStorage as fallback
+          const storedUser = localStorage.getItem("currentUser");
+          if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+          }
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkSession();
+    
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -72,19 +118,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       
       if (authError) {
-        // If Supabase auth fails, fall back to mock data (for development)
+        // If user hasn't confirmed their email
+        if (authError.message.includes("Email not confirmed")) {
+          throw new Error("Email not confirmed. Please check your inbox for the verification email.");
+        }
+        
+        // If invalid credentials, try mock data as fallback (for development)
         const user = MOCK_USERS.find(
           (u) => u.email === email && u.password === password
         );
         
         if (!user) {
-          throw new Error("Invalid email or password");
+          throw new Error(authError.message || "Invalid email or password");
         }
         
         // Remove password from user object before storing
         const { password: _, ...userWithoutPassword } = user;
         setCurrentUser(userWithoutPassword as User);
         localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
+        
+        toast({
+          title: "Logged in successfully (Mock)",
+          description: "Using development mock data",
+        });
       } else {
         // Supabase authentication successful
         if (authData.user) {
@@ -97,13 +153,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           
           setCurrentUser(userData);
           localStorage.setItem("currentUser", JSON.stringify(userData));
+          
+          toast({
+            title: "Logged in successfully",
+            description: "Welcome back!",
+          });
         }
       }
-      
-      toast({
-        title: "Logged in successfully",
-        description: "Welcome back!",
-      });
     } catch (error) {
       toast({
         title: "Login failed",

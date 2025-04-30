@@ -7,26 +7,80 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleResetPassword = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setErrorMessage("Please enter your email address to reset your password");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for the password reset link",
+      });
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to send password reset email");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
     
-    if (!email || !password) return;
+    if (!email || !password) {
+      setErrorMessage("Please enter both email and password");
+      return;
+    }
     
     setIsSubmitting(true);
     
     try {
       await login(email, password);
       navigate("/app/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      if (error.message.includes("Email not confirmed")) {
+        setErrorMessage(
+          "Please check your email to confirm your account before logging in."
+        );
+        // Send another confirmation email
+        try {
+          await supabase.auth.resend({
+            type: 'signup',
+            email,
+          });
+          toast({
+            title: "Verification email resent",
+            description: "Please check your inbox to verify your email address",
+          });
+        } catch (resendError) {
+          console.error("Error resending verification email:", resendError);
+        }
+      } else {
+        setErrorMessage(error.message || "Invalid email or password.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -42,6 +96,11 @@ const LoginForm = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {errorMessage && (
+            <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
+              {errorMessage}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -56,12 +115,12 @@ const LoginForm = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <a 
-                href="/forgot-password" 
+              <button 
+                onClick={handleResetPassword}
                 className="text-xs text-primary hover:underline"
               >
                 Forgot password?
-              </a>
+              </button>
             </div>
             <Input
               id="password"
