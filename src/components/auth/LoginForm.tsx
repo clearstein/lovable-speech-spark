@@ -22,7 +22,7 @@ const LoginForm = () => {
   const handleResetPassword = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!email) {
-      setErrorMessage("Please enter your email address to reset your password");
+      setErrorMessage("Veuillez saisir votre adresse e-mail pour réinitialiser votre mot de passe");
       return;
     }
 
@@ -35,11 +35,11 @@ const LoginForm = () => {
       if (error) throw error;
       
       toast({
-        title: "Password reset email sent",
-        description: "Check your email for the password reset link",
+        title: "E-mail de réinitialisation envoyé",
+        description: "Vérifiez votre boîte mail pour le lien de réinitialisation",
       });
     } catch (error: any) {
-      setErrorMessage(error.message || "Failed to send password reset email");
+      setErrorMessage(error.message || "Échec de l'envoi de l'e-mail de réinitialisation");
     } finally {
       setIsSubmitting(false);
     }
@@ -50,7 +50,7 @@ const LoginForm = () => {
     setErrorMessage("");
     
     if (!email || !password) {
-      setErrorMessage("Please enter both email and password");
+      setErrorMessage("Veuillez saisir votre e-mail et votre mot de passe");
       return;
     }
     
@@ -59,15 +59,15 @@ const LoginForm = () => {
     try {
       await login(email, password);
       toast({
-        title: "Login successful",
-        description: "You have been logged in. Redirecting to your dashboard...",
+        title: "Connexion réussie",
+        description: "Vous êtes maintenant connecté. Redirection vers votre tableau de bord...",
       });
       navigate("/app/dashboard");
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Erreur de connexion:", error);
       if (error.message.includes("Email not confirmed")) {
         setErrorMessage(
-          "Please check your email to confirm your account before logging in."
+          "Veuillez vérifier votre e-mail pour confirmer votre compte avant de vous connecter."
         );
         // Send another confirmation email
         try {
@@ -76,14 +76,14 @@ const LoginForm = () => {
             email,
           });
           toast({
-            title: "Verification email resent",
-            description: "Please check your inbox to verify your email address",
+            title: "E-mail de vérification renvoyé",
+            description: "Veuillez vérifier votre boîte mail pour confirmer votre adresse e-mail",
           });
         } catch (resendError) {
-          console.error("Error resending verification email:", resendError);
+          console.error("Erreur lors du renvoi de l'e-mail de vérification:", resendError);
         }
       } else {
-        setErrorMessage(error.message || "Invalid email or password.");
+        setErrorMessage(error.message || "E-mail ou mot de passe invalide.");
       }
     } finally {
       setIsSubmitting(false);
@@ -93,9 +93,9 @@ const LoginForm = () => {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-2xl">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl">Re-bonjour</CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          Entrez vos identifiants pour accéder à votre compte
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -106,11 +106,11 @@ const LoginForm = () => {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
               type="email"
-              placeholder="name@example.com"
+              placeholder="nom@exemple.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -118,12 +118,12 @@ const LoginForm = () => {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <button 
                 onClick={handleResetPassword}
                 className="text-xs text-primary hover:underline"
               >
-                Forgot password?
+                Mot de passe oublié ?
               </button>
             </div>
             <Input
@@ -143,12 +143,12 @@ const LoginForm = () => {
             {isSubmitting ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Logging in...
+                Connexion en cours...
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <LogIn size={18} />
-                Login
+                Se connecter
               </span>
             )}
           </Button>
@@ -156,7 +156,7 @@ const LoginForm = () => {
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-sm text-center text-muted-foreground">
-          <p>Don't have an account? Contact your administrator.</p>
+          <p>Vous n'avez pas de compte ? Contactez votre administrateur.</p>
         </div>
       </CardFooter>
     </Card>

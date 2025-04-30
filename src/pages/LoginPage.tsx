@@ -20,21 +20,23 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-xl">ST</span>
-              </div>
-              <span className="font-bold text-2xl">Speech Spark</span>
+              <img 
+                src="/lovable-uploads/5c8491f6-a38b-4ec4-acd7-f60122594862.png" 
+                alt="OrthoBoost Logo" 
+                className="w-16 h-16 object-contain"
+              />
+              <span className="font-bold text-2xl">OrthoBoost</span>
             </div>
-            <h1 className="text-2xl font-bold">Welcome to Speech Spark</h1>
+            <h1 className="text-2xl font-bold">Bienvenue sur OrthoBoost</h1>
             <p className="text-muted-foreground">
-              Login to access your account
+              Connectez-vous pour accéder à votre compte
             </p>
           </div>
           
           <LoginForm />
           
           <div className="mt-8 text-center text-sm text-muted-foreground">
-            <p>Need help? Contact support at support@speechspark.com</p>
+            <p>Besoin d'aide ? Contactez le support à support@orthoboost.com</p>
           </div>
         </div>
       </div>
@@ -43,9 +45,9 @@ const LoginPage = () => {
       <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-primary to-therapy-yellow p-8">
         <div className="h-full flex flex-col items-center justify-center text-white">
           <div className="max-w-lg">
-            <h2 className="text-3xl font-bold mb-4">Making Speech Therapy Engaging</h2>
+            <h2 className="text-3xl font-bold mb-4">Rendre l'Orthophonie Engageante</h2>
             <p className="text-lg mb-8">
-              Our platform connects therapists and patients through interactive exercises designed to make speech therapy fun and effective.
+              Notre plateforme connecte thérapeutes et patients grâce à des exercices interactifs conçus pour rendre l'orthophonie amusante et efficace.
             </p>
             
             <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
@@ -54,14 +56,14 @@ const LoginPage = () => {
                   <span className="font-semibold">JP</span>
                 </div>
                 <div className="p-4 bg-white/20 rounded-lg speech-bubble text-white">
-                  <p>"My patients have shown remarkable improvement since using Speech Spark. The gamified approach makes all the difference!"</p>
+                  <p>"Mes patients ont montré une amélioration remarquable depuis qu'ils utilisent OrthoBoost. L'approche ludique fait toute la différence !"</p>
                 </div>
               </div>
               
               <div className="flex justify-end">
                 <div className="text-sm text-right">
-                  <p className="font-semibold">Dr. James Peterson</p>
-                  <p className="opacity-70">Speech Pathologist</p>
+                  <p className="font-semibold">Dr. Jacques Pelletier</p>
+                  <p className="opacity-70">Orthophoniste</p>
                 </div>
               </div>
             </div>

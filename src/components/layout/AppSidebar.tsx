@@ -37,27 +37,27 @@ const AppSidebar = () => {
     switch (userRole) {
       case "admin":
         return [
-          { title: "Dashboard", icon: Home, path: "/app/dashboard" },
-          { title: "Therapists", icon: Users, path: "/app/therapists" },
+          { title: "Tableau de bord", icon: Home, path: "/app/dashboard" },
+          { title: "Thérapeutes", icon: Users, path: "/app/therapists" },
           { title: "Patients", icon: UserRound, path: "/app/patients" },
-          { title: "Exercises", icon: Activity, path: "/app/exercises" },
-          { title: "Analytics", icon: BarChart, path: "/app/analytics" },
-          { title: "Settings", icon: Settings, path: "/app/settings" },
+          { title: "Exercices", icon: Activity, path: "/app/exercises" },
+          { title: "Statistiques", icon: BarChart, path: "/app/analytics" },
+          { title: "Paramètres", icon: Settings, path: "/app/settings" },
         ];
       case "therapist":
         return [
-          { title: "Dashboard", icon: Home, path: "/app/dashboard" },
-          { title: "My Patients", icon: UserRound, path: "/app/patients" },
-          { title: "Assignments", icon: Calendar, path: "/app/assignments" },
-          { title: "Progress Notes", icon: FileText, path: "/app/notes" },
-          { title: "Settings", icon: Settings, path: "/app/settings" },
+          { title: "Tableau de bord", icon: Home, path: "/app/dashboard" },
+          { title: "Mes Patients", icon: UserRound, path: "/app/patients" },
+          { title: "Rendez-vous", icon: Calendar, path: "/app/assignments" },
+          { title: "Notes de progrès", icon: FileText, path: "/app/notes" },
+          { title: "Paramètres", icon: Settings, path: "/app/settings" },
         ];
       case "patient":
         return [
-          { title: "My Games", icon: Gamepad2, path: "/app/games" },
-          { title: "Daily Missions", icon: Calendar, path: "/app/missions" },
-          { title: "Achievements", icon: Award, path: "/app/achievements" },
-          { title: "Profile", icon: UserRound, path: "/app/profile" },
+          { title: "Mes Jeux", icon: Gamepad2, path: "/app/games" },
+          { title: "Missions quotidiennes", icon: Calendar, path: "/app/missions" },
+          { title: "Réussites", icon: Award, path: "/app/achievements" },
+          { title: "Profil", icon: UserRound, path: "/app/profile" },
         ];
       default:
         return [];
@@ -68,12 +68,14 @@ const AppSidebar = () => {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-white font-bold text-xl">ST</span>
-          </div>
+          <img 
+            src="/lovable-uploads/5c8491f6-a38b-4ec4-acd7-f60122594862.png" 
+            alt="OrthoBoost Logo" 
+            className="w-10 h-10 rounded-full object-contain"
+          />
           <div>
-            <h3 className="font-bold text-white">Speech Spark</h3>
-            <p className="text-xs text-white/80">Therapy Made Fun</p>
+            <h3 className="font-bold text-white">OrthoBoost</h3>
+            <p className="text-xs text-white/80">Thérapie Amusante</p>
           </div>
         </div>
         <SidebarTrigger className="absolute top-4 right-4 text-white" />
@@ -110,7 +112,7 @@ const AppSidebar = () => {
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-sidebar-accent/50 text-white"
         >
           <LogOut size={20} />
-          <span>Logout</span>
+          <span>Déconnexion</span>
         </button>
       </SidebarFooter>
     </Sidebar>
