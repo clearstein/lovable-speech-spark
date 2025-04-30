@@ -8,33 +8,46 @@ export async function determineUserRole(session: any): Promise<UserRole> {
   
   // First try to get role from app_metadata
   if (session.user.app_metadata && session.user.app_metadata.role) {
+    console.log("Found role in app_metadata:", session.user.app_metadata.role);
     role = session.user.app_metadata.role as UserRole;
-  } else {
-    // If not in app_metadata, check app_settings table for admin
-    try {
-      const { data: settingsData } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'admin_signup')
-        .single();
-          
-      if (settingsData?.value && 
-          typeof settingsData.value === 'object' && 
-          'completed' in settingsData.value && 
-          settingsData.value.completed === true &&
-          session.user.email === settingsData.value.admin_email) {
-        // This is the admin user from app_settings
-        role = 'admin';
+    return role; // Return immediately if role is found in app_metadata
+  }
+  
+  // If not in app_metadata, check app_settings table for admin
+  try {
+    const { data: settingsData } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'admin_signup')
+      .single();
         
-        // Update the role in app_metadata for future logins
-        await supabase.rpc('set_user_role', { 
-          user_id: session.user.id, 
-          role: 'admin' 
-        });
-      }
-    } catch (error) {
-      console.error("Error checking admin status:", error);
+    if (settingsData?.value && 
+        typeof settingsData.value === 'object' && 
+        'completed' in settingsData.value && 
+        settingsData.value.completed === true &&
+        session.user.email === settingsData.value.admin_email) {
+      // This is the admin user from app_settings
+      console.log("Found admin in app_settings:", session.user.email);
+      role = 'admin';
+      
+      // Update the role in app_metadata for future logins
+      await supabase.rpc('set_user_role', { 
+        user_id: session.user.id, 
+        role: 'admin' 
+      });
+      
+      return role;
     }
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+  }
+
+  // If we've fallen through to here, check for mock users
+  // This is helpful for development/testing
+  const storedUser = getStoredUserData();
+  if (storedUser && storedUser.role) {
+    console.log("Using role from stored user:", storedUser.role);
+    role = storedUser.role;
   }
 
   return role;

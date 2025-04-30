@@ -18,9 +18,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Initialize auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state change:", event);
         if (session?.user) {
           // Determine user role
           const role = await determineUserRole(session);
+          console.log("Role determined in onAuthStateChange:", role);
           
           // Create user data
           const userData = createUserData(session, role);
@@ -43,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (session?.user) {
           // Determine user role
           const role = await determineUserRole(session);
+          console.log("Role determined in checkSession:", role);
           
           // Create user data
           const userData = createUserData(session, role);
@@ -54,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Check for stored user in localStorage as fallback
           const storedUser = getStoredUserData();
           if (storedUser) {
+            console.log("Using stored user:", storedUser.role);
             setCurrentUser(storedUser);
           }
         }

@@ -56,6 +56,8 @@ export const useAuthOperations = () => {
           // Determine user role
           const role = await determineUserRole(authData.session);
           
+          console.log("Determined role after login:", role);
+          
           // Create user data
           const userData = createUserData(authData.session, role);
           
@@ -64,7 +66,7 @@ export const useAuthOperations = () => {
           
           toast({
             title: "Logged in successfully",
-            description: "Welcome back!",
+            description: `Welcome back, ${role}!`,
           });
           
           return userData;
