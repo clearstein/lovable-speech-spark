@@ -52,7 +52,7 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
       options: {
         data: {
           name: therapistData.name,
-          role: 'therapist'
+          role: 'therapist' // Explicitly set role to 'therapist'
         }
       }
     });
@@ -67,6 +67,18 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
     }
     
     console.log("Created auth user:", authData.user.id);
+    
+    // Set the user's role to therapist using RPC
+    try {
+      await supabase.rpc('set_user_role', { 
+        user_id: authData.user.id, 
+        role: 'therapist' 
+      });
+      console.log("Set role to therapist for user:", authData.user.id);
+    } catch (roleError) {
+      console.error("Error setting user role:", roleError);
+      // Continue anyway as we'll also store the role in the therapists table
+    }
     
     // Then create the therapist record in our therapists table
     const { data, error } = await supabase
@@ -122,7 +134,7 @@ export async function updateTherapist(therapistData: UpdateTherapistData): Promi
 
 export async function deleteTherapist(id: string): Promise<boolean> {
   try {
-    // Delete from therapists table first
+    // First delete from therapists table
     const { error: dbError } = await supabase
       .from('therapists')
       .delete()
@@ -131,6 +143,18 @@ export async function deleteTherapist(id: string): Promise<boolean> {
     if (dbError) {
       console.error("Error deleting therapist from database:", dbError);
       return false;
+    }
+    
+    // Also delete the user from auth (if you have permission)
+    try {
+      const { error: authError } = await supabase.auth.admin.deleteUser(id);
+      if (authError) {
+        console.error("Error deleting therapist auth account (may require admin):", authError);
+        // Continue even if auth deletion fails, as this might require admin API
+      }
+    } catch (authDeleteError) {
+      console.error("Exception deleting therapist auth account:", authDeleteError);
+      // Continue anyway as we've deleted from therapists table
     }
     
     return true;
