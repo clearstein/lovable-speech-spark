@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createTherapist } from "@/services/therapist-service";
 import { toast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AddTherapistDialogProps {
   isOpen: boolean;
@@ -24,20 +26,32 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
     active: true
   });
   
+  const [validationError, setValidationError] = useState<string | null>(null);
+  
   const queryClient = useQueryClient();
   
   const createTherapistMutation = useMutation({
     mutationFn: createTherapist,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (!data) {
+        toast({
+          title: "Error creating therapist",
+          description: "Failed to create therapist record. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       toast({
         title: "Therapist created",
-        description: "The therapist has been successfully created"
+        description: `${data.name} has been successfully added as a therapist`
       });
       queryClient.invalidateQueries({ queryKey: ['therapists'] });
       onClose();
       resetForm();
     },
     onError: (error) => {
+      console.error("Error creating therapist:", error);
       toast({
         title: "Failed to create therapist",
         description: error instanceof Error ? error.message : "An unexpected error occurred",
@@ -49,6 +63,7 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setValidationError(null);
   };
   
   const handleSwitchChange = (checked: boolean) => {
@@ -64,15 +79,58 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
       specialty: "",
       active: true
     });
+    setValidationError(null);
+  };
+  
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setValidationError("Name is required");
+      return false;
+    }
+    
+    if (!formData.email.trim()) {
+      setValidationError("Email is required");
+      return false;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setValidationError("Please enter a valid email address");
+      return false;
+    }
+    
+    if (!formData.password) {
+      setValidationError("Password is required");
+      return false;
+    }
+    
+    if (formData.password.length < 6) {
+      setValidationError("Password must be at least 6 characters long");
+      return false;
+    }
+    
+    return true;
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     createTherapistMutation.mutate(formData);
   };
   
+  const handleClose = () => {
+    if (!createTherapistMutation.isPending) {
+      resetForm();
+      onClose();
+    }
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -81,6 +139,13 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
               Create a new therapist account. They will be able to log in using these credentials.
             </DialogDescription>
           </DialogHeader>
+          
+          {validationError && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          )}
           
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -162,7 +227,7 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={onClose}
+              onClick={handleClose}
               disabled={createTherapistMutation.isPending}
             >
               Cancel
