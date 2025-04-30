@@ -1,26 +1,55 @@
 
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SearchIcon, PlusCircle, Edit, Trash2, UserPlus, FileText } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
+// Mock data for patients
+const mockPatients = [
+  {
+    id: "1",
+    name: "Alex Smith",
+    date_of_birth: "2015-06-12",
+    therapist: { id: "2", name: "Dr. Emma Johnson" },
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "2",
+    name: "Jamie Davis",
+    date_of_birth: "2018-03-22",
+    therapist: { id: "2", name: "Dr. Emma Johnson" },
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "3",
+    name: "Sophia Chen",
+    date_of_birth: "2016-11-05",
+    therapist: { id: "3", name: "Dr. Michael Brown" },
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "4",
+    name: "Ryan Johnson",
+    date_of_birth: "2017-08-17",
+    therapist: { id: "4", name: "Sarah Williams" },
+    created_at: new Date().toISOString()
+  },
+];
 
 const PatientsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: patients, isLoading, error } = useQuery({
+  // Use react-query with mock data
+  const { data: patients, isLoading } = useQuery({
     queryKey: ['patients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('patient_profiles')
-        .select('*, therapist:therapist_id(*)')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
+    queryFn: () => {
+      // Simulate API delay
+      return new Promise(resolve => {
+        setTimeout(() => resolve(mockPatients), 500);
+      });
     }
   });
 
@@ -32,15 +61,6 @@ const PatientsPage = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <p className="text-red-500 mb-2">Error loading patients</p>
-        <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
       </div>
     );
   }
