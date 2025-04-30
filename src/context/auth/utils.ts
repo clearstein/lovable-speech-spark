@@ -13,24 +13,6 @@ export async function determineUserRole(session: any): Promise<UserRole> {
     return role; // Return immediately if role is found in app_metadata
   }
   
-  // If we've fallen through to here, check for role in user_roles table
-  try {
-    // Use a more type-safe approach for querying
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-    
-    if (!error && data) {
-      console.log("Found role in user_roles table:", data.role);
-      role = data.role as UserRole;
-      return role;
-    }
-  } catch (error) {
-    console.error("Error fetching user role from database:", error);
-  }
-  
   // If we've fallen through to here, check for mock users
   // This is helpful for development/testing
   const storedUser = getStoredUserData();

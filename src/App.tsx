@@ -12,6 +12,13 @@ import NotFoundPage from "./pages/NotFoundPage";
 import AppLayout from "./components/layout/AppLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 
+// Import new pages
+import TherapistsPage from "./pages/app/therapists/TherapistsPage";
+import PatientsPage from "./pages/app/patients/PatientsPage";
+import ExercisesPage from "./pages/app/exercises/ExercisesPage";
+import AnalyticsPage from "./pages/app/analytics/AnalyticsPage";
+import SettingsPage from "./pages/app/settings/SettingsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -29,12 +36,11 @@ const App = () => (
             {/* Protected Routes */}
             <Route path="/app" element={<AppLayout />}>
               <Route path="dashboard" element={<Dashboard />} />
-              {/* These routes will be implemented as needed */}
-              <Route path="therapists" element={<div>Therapists Page</div>} />
-              <Route path="patients" element={<div>Patients Page</div>} />
-              <Route path="exercises" element={<div>Exercises Page</div>} />
-              <Route path="analytics" element={<div>Analytics Page</div>} />
-              <Route path="settings" element={<div>Settings Page</div>} />
+              <Route path="therapists" element={<TherapistsPage />} />
+              <Route path="patients" element={<PatientsPage />} />
+              <Route path="exercises" element={<ExercisesPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
               <Route path="assignments" element={<div>Assignments Page</div>} />
               <Route path="notes" element={<div>Notes Page</div>} />
               <Route path="games" element={<div>Games Page</div>} />
