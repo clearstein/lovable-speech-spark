@@ -1,15 +1,15 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import LoginForm from "@/components/auth/LoginForm";
 
 const LoginPage = () => {
-  const { isAuthenticated } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated, userRole } = useAuth();
 
   // Redirect if already logged in
   if (isAuthenticated) {
+    // Make sure to go to dashboard with admin role
     return <Navigate to="/app/dashboard" replace />;
   }
 

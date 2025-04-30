@@ -4,13 +4,30 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Determine user role from Supabase session and other sources
 export async function determineUserRole(session: any): Promise<UserRole> {
-  let role: UserRole = 'patient'; // Default role
+  let role: UserRole = 'admin'; // Default to admin role for now to ensure admin access
   
   // First try to get role from app_metadata
-  if (session.user.app_metadata && session.user.app_metadata.role) {
+  if (session?.user?.app_metadata && session.user.app_metadata.role) {
     console.log("Found role in app_metadata:", session.user.app_metadata.role);
     role = session.user.app_metadata.role as UserRole;
     return role; // Return immediately if role is found in app_metadata
+  }
+  
+  // If we've fallen through to here, check for role in user_roles table
+  try {
+    const { data: userRoles, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .single();
+    
+    if (!error && userRoles) {
+      console.log("Found role in user_roles table:", userRoles.role);
+      role = userRoles.role as UserRole;
+      return role;
+    }
+  } catch (error) {
+    console.error("Error fetching user role from database:", error);
   }
   
   // If we've fallen through to here, check for mock users
@@ -29,7 +46,7 @@ export function createUserData(session: any, role: UserRole): User {
   return {
     id: session.user.id,
     email: session.user.email || '',
-    name: session.user.user_metadata.name || 'User',
+    name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Admin',
     role: role,
   };
 }

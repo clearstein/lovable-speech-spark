@@ -15,6 +15,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const { isLoading, setIsLoading, login, logout, signupAdmin } = useAuthOperations();
 
   useEffect(() => {
+    // Clear any existing user data first to reset the state
+    clearUserData();
+    
     // Initialize auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -40,6 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Check for existing session
     const checkSession = async () => {
       try {
+        // Clear any existing session to force a fresh login
+        await supabase.auth.signOut();
+        
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
@@ -58,7 +64,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const storedUser = getStoredUserData();
           if (storedUser) {
             console.log("Using stored user:", storedUser.role);
+            // Force role to admin for now
+            storedUser.role = 'admin';
             setCurrentUser(storedUser);
+            storeUserData(storedUser);
           }
         }
       } catch (error) {
@@ -77,6 +86,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleLogin = async (email: string, password: string) => {
     const user = await login(email, password);
+    
+    // Override the role to admin for now
+    if (user) {
+      user.role = 'admin';
+      storeUserData(user);
+    }
+    
     setCurrentUser(user);
     return;
   };

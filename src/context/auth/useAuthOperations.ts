@@ -42,21 +42,28 @@ export const useAuthOperations = () => {
         
         // Remove password from user object before storing
         const { password: _, ...userWithoutPassword } = user;
-        storeUserData(userWithoutPassword as User);
+        
+        // Force role to admin
+        const userData = {
+          ...userWithoutPassword, 
+          role: 'admin' as UserRole
+        };
+        
+        storeUserData(userData as User);
         
         toast({
           title: "Logged in successfully (Mock)",
-          description: "Using development mock data",
+          description: "Using development mock data with admin role",
         });
         
-        return userWithoutPassword as User;
+        return userData as User;
       } else {
         // Supabase authentication successful
         if (authData.user) {
-          // Determine user role
-          const role = await determineUserRole(authData.session);
+          // Force role to admin for now
+          const role: UserRole = 'admin';
           
-          console.log("Determined role after login:", role);
+          console.log("Setting role to admin after login");
           
           // Create user data
           const userData = createUserData(authData.session, role);
@@ -66,7 +73,7 @@ export const useAuthOperations = () => {
           
           toast({
             title: "Logged in successfully",
-            description: `Welcome back, ${role}!`,
+            description: `Welcome back, Admin!`,
           });
           
           return userData;

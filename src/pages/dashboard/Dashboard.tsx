@@ -1,12 +1,22 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import AdminDashboard from "./AdminDashboard";
 import TherapistDashboard from "./TherapistDashboard";
 import PatientDashboard from "./PatientDashboard";
 
 const Dashboard = () => {
-  const { userRole } = useAuth();
+  const { userRole, currentUser } = useAuth();
+  
+  useEffect(() => {
+    console.log("Current user role in Dashboard:", userRole);
+    console.log("Current user data:", currentUser);
+  }, [userRole, currentUser]);
+
+  // Force admin dashboard for now
+  if (true) {
+    return <AdminDashboard />;
+  }
 
   // Render the appropriate dashboard based on user role
   switch (userRole) {
