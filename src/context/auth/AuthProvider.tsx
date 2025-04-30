@@ -23,16 +23,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       async (event, session) => {
         console.log("Auth state change:", event);
         if (session?.user) {
-          // Determine user role
-          const role: UserRole = await determineUserRole(session);
-          console.log("Determined user role:", role);
-          
-          // Create user data
-          const userData = createUserData(session, role);
-          
-          // Update state and storage
-          setCurrentUser(userData);
-          storeUserData(userData);
+          try {
+            // Determine user role
+            const role: UserRole = await determineUserRole(session);
+            console.log("Determined user role:", role);
+            
+            // Create user data
+            const userData = createUserData(session, role);
+            
+            // Update state and storage
+            setCurrentUser(userData);
+            storeUserData(userData);
+          } catch (error) {
+            console.error("Error determining user role:", error);
+            setCurrentUser(null);
+            clearUserData();
+          }
         } else {
           setCurrentUser(null);
           clearUserData();
@@ -46,16 +52,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Determine user role
-          const role: UserRole = await determineUserRole(session);
-          console.log("Determined user role from session:", role);
-          
-          // Create user data
-          const userData = createUserData(session, role);
-          
-          // Update state and storage
-          setCurrentUser(userData);
-          storeUserData(userData);
+          try {
+            // Determine user role
+            const role: UserRole = await determineUserRole(session);
+            console.log("Determined user role from session:", role);
+            
+            // Create user data
+            const userData = createUserData(session, role);
+            
+            // Update state and storage
+            setCurrentUser(userData);
+            storeUserData(userData);
+          } catch (error) {
+            console.error("Error determining user role:", error);
+            
+            // Check for stored user in localStorage as fallback
+            const storedUser = getStoredUserData();
+            if (storedUser) {
+              console.log("Using stored user:", storedUser.role);
+              setCurrentUser(storedUser);
+            }
+          }
         } else {
           // Check for stored user in localStorage as fallback
           const storedUser = getStoredUserData();

@@ -15,16 +15,28 @@ export async function determineUserRole(session: any): Promise<UserRole> {
   }
 
   // If no role in app_metadata, check therapist table
-  const { data: therapistData } = await supabase
+  const { data: therapistData, error: therapistError } = await supabase
     .from('therapists')
     .select('*')
     .eq('id', session.user.id)
     .single();
     
-  if (therapistData) {
+  if (therapistData && !therapistError) {
     console.log("Found therapist record:", therapistData);
     return 'therapist';
   }
+  
+  // TODO: Check for patient table when implemented
+  // const { data: patientData } = await supabase
+  //   .from('patients')
+  //   .select('*')
+  //   .eq('id', session.user.id)
+  //   .single();
+  //
+  // if (patientData) {
+  //   console.log("Found patient record:", patientData);
+  //   return 'patient';
+  // }
   
   // If we've fallen through to here, check for mock users
   const storedUser = getStoredUserData();

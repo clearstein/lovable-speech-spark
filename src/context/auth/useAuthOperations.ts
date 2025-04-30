@@ -56,7 +56,7 @@ export const useAuthOperations = () => {
         return userData as User;
       } else {
         // Supabase authentication successful
-        if (authData.user) {
+        if (authData.session && authData.user) {
           // Determine user role by checking the database
           const role: UserRole = await determineUserRole(authData.session);
           
