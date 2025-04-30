@@ -8,6 +8,7 @@ import { AuthProvider } from "@/context/AuthContext";
 
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import AdminSignupPage from "./pages/AdminSignupPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AppLayout from "./components/layout/AppLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -25,6 +26,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin-signup" element={<AdminSignupPage />} />
 
             {/* Protected Routes */}
             <Route path="/app" element={<AppLayout />}>
