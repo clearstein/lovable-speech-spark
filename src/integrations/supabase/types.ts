@@ -137,6 +137,36 @@ export type Database = {
         }
         Relationships: []
       }
+      therapists: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          license: string | null
+          name: string
+          specialty: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          id: string
+          license?: string | null
+          name: string
+          specialty?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          license?: string | null
+          name?: string
+          specialty?: string | null
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           language: string

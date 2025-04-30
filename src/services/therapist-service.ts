@@ -144,4 +144,3 @@ export async function deleteTherapist(id: string): Promise<boolean> {
     return false;
   }
 }
-
