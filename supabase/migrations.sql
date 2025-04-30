@@ -10,6 +10,7 @@ DROP POLICY IF EXISTS "Admins can view therapists" ON public.therapists;
 DROP POLICY IF EXISTS "Admins can create therapists" ON public.therapists;
 DROP POLICY IF EXISTS "Admins can update therapists" ON public.therapists;
 DROP POLICY IF EXISTS "Admins can delete therapists" ON public.therapists;
+DROP POLICY IF EXISTS "Therapists can view own profile" ON public.therapists;
 
 -- Create RLS policies
 -- Admins can view all therapists
@@ -30,6 +31,9 @@ WITH CHECK (
     SELECT 1 FROM auth.users
     WHERE auth.uid() = auth.users.id AND raw_app_meta_data->>'role' = 'admin'
   )
+  OR 
+  -- Allow inserting when the id is the current user's id (for self-registration)
+  auth.uid() = id
 );
 
 -- Admins can update therapists

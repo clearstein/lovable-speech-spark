@@ -80,8 +80,7 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
       // Continue anyway as we'll also store the role in the therapists table
     }
     
-    // Then create the therapist record in our therapists table 
-    // Use service_role key if available, otherwise proceed with standard insert
+    // Then create the therapist record in our therapists table
     const { data, error } = await supabase
       .from('therapists')
       .insert({
