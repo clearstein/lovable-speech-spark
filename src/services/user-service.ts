@@ -1,53 +1,59 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { UserSettings } from "@/types/user-settings";
 
-export async function getUserSettings(userId: string): Promise<UserSettings | null> {
-  const { data, error } = await supabase
-    .from('user_settings')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
-  
-  if (error) {
-    if (error.code === 'PGRST116') return null; // Not found
-    throw error;
+// Mock data for user settings
+const mockUserSettings: Record<string, UserSettings> = {
+  "1": {
+    user_id: "1",
+    theme: "light",
+    notifications_enabled: true,
+    language: "en",
+    updated_at: new Date().toISOString()
   }
-  return data;
+};
+
+export async function getUserSettings(userId: string): Promise<UserSettings | null> {
+  // Simulate API call
+  return new Promise(resolve => {
+    setTimeout(() => resolve(mockUserSettings[userId] || null), 200);
+  });
 }
 
 export async function updateUserSettings(settings: Partial<UserSettings>): Promise<UserSettings> {
-  const { data, error } = await supabase
-    .from('user_settings')
-    .update(settings)
-    .eq('user_id', settings.user_id!)
-    .select();
-  
-  if (error) throw error;
-  return data[0];
+  // Simulate API call
+  return new Promise(resolve => {
+    const userId = settings.user_id!;
+    const existingSettings = mockUserSettings[userId] || {
+      user_id: userId,
+      theme: "light",
+      notifications_enabled: true,
+      language: "en",
+      updated_at: new Date().toISOString()
+    };
+
+    const updatedSettings: UserSettings = {
+      ...existingSettings,
+      ...settings,
+      updated_at: new Date().toISOString()
+    };
+
+    mockUserSettings[userId] = updatedSettings;
+    setTimeout(() => resolve(updatedSettings), 200);
+  });
 }
 
 export async function createUserIfNotExists(userId: string, userSettings: Partial<UserSettings>): Promise<UserSettings> {
-  // Check if user settings exist
-  const existing = await getUserSettings(userId);
-  
-  if (existing) {
-    // Update if exists
-    return updateUserSettings({
-      ...existing,
-      ...userSettings
-    });
-  } else {
-    // Create if not exists
-    const { data, error } = await supabase
-      .from('user_settings')
-      .insert([{
+  // Simulate API call
+  return new Promise(resolve => {
+    if (!mockUserSettings[userId]) {
+      mockUserSettings[userId] = {
         user_id: userId,
-        ...userSettings
-      }])
-      .select();
-    
-    if (error) throw error;
-    return data[0];
-  }
+        theme: userSettings.theme || "light",
+        notifications_enabled: userSettings.notifications_enabled ?? true,
+        language: userSettings.language || "en",
+        updated_at: new Date().toISOString()
+      };
+    }
+    setTimeout(() => resolve(mockUserSettings[userId]), 200);
+  });
 }

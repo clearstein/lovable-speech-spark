@@ -103,6 +103,8 @@ export async function createExercise(exercise: Partial<Exercise>): Promise<Exerc
       created_at: new Date().toISOString(),
       created_by: exercise.created_by
     };
+    
+    mockExercises.push(newExercise);
     setTimeout(() => resolve(newExercise), 300);
   });
 }
@@ -110,15 +112,29 @@ export async function createExercise(exercise: Partial<Exercise>): Promise<Exerc
 export async function updateExercise(id: string, exercise: Partial<Exercise>): Promise<Exercise> {
   // Simulate API call
   return new Promise(resolve => {
-    const existingExercise = mockExercises.find(ex => ex.id === id);
-    const updatedExercise = { ...existingExercise, ...exercise } as Exercise;
-    setTimeout(() => resolve(updatedExercise), 300);
+    const existingExerciseIndex = mockExercises.findIndex(ex => ex.id === id);
+    if (existingExerciseIndex !== -1) {
+      const updatedExercise = { 
+        ...mockExercises[existingExerciseIndex], 
+        ...exercise 
+      } as Exercise;
+      
+      mockExercises[existingExerciseIndex] = updatedExercise;
+      setTimeout(() => resolve(updatedExercise), 300);
+    } else {
+      // Return the original exercise if not found
+      setTimeout(() => resolve(mockExercises[0]), 300);
+    }
   });
 }
 
 export async function deleteExercise(id: string): Promise<void> {
   // Simulate API call
   return new Promise(resolve => {
+    const index = mockExercises.findIndex(ex => ex.id === id);
+    if (index !== -1) {
+      mockExercises.splice(index, 1);
+    }
     setTimeout(() => resolve(), 200);
   });
 }

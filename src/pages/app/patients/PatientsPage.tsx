@@ -43,7 +43,7 @@ const PatientsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Use react-query with mock data
-  const { data: patients, isLoading } = useQuery({
+  const { data: patients = [], isLoading } = useQuery({
     queryKey: ['patients'],
     queryFn: () => {
       // Simulate API delay
@@ -53,7 +53,7 @@ const PatientsPage = () => {
     }
   });
 
-  const filteredPatients = patients?.filter(patient => 
+  const filteredPatients = patients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -106,7 +106,7 @@ const PatientsPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPatients && filteredPatients.length > 0 ? (
+              {filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => {
                   // Calculate age if date_of_birth exists
                   let age = "N/A";
@@ -164,7 +164,7 @@ const PatientsPage = () => {
         </CardContent>
         <CardFooter className="flex justify-between border-t pt-4">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredPatients?.length || 0} patients
+            Showing {filteredPatients.length || 0} patients
           </p>
         </CardFooter>
       </Card>

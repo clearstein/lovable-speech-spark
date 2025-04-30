@@ -47,7 +47,7 @@ const mockTherapists = [
 const TherapistsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: therapists, isLoading } = useQuery({
+  const { data: therapists = [], isLoading } = useQuery({
     queryKey: ['therapists'],
     queryFn: () => {
       // Simulate API delay
@@ -57,7 +57,7 @@ const TherapistsPage = () => {
     }
   });
 
-  const filteredTherapists = therapists?.filter(therapist => 
+  const filteredTherapists = therapists.filter(therapist => 
     therapist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (therapist.specialty && therapist.specialty.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -112,7 +112,7 @@ const TherapistsPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTherapists && filteredTherapists.length > 0 ? (
+              {filteredTherapists.length > 0 ? (
                 filteredTherapists.map((therapist) => (
                   <TableRow key={therapist.id}>
                     <TableCell className="font-medium">
@@ -154,7 +154,7 @@ const TherapistsPage = () => {
         </CardContent>
         <CardFooter className="flex justify-between border-t pt-4">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredTherapists?.length || 0} therapists
+            Showing {filteredTherapists.length || 0} therapists
           </p>
         </CardFooter>
       </Card>
