@@ -1,0 +1,70 @@
+
+import { User, UserRole } from "@/types/auth";
+import { supabase } from "@/integrations/supabase/client";
+
+// Determine user role from Supabase session and other sources
+export async function determineUserRole(session: any): Promise<UserRole> {
+  let role: UserRole = 'patient'; // Default role
+  
+  // First try to get role from app_metadata
+  if (session.user.app_metadata && session.user.app_metadata.role) {
+    role = session.user.app_metadata.role as UserRole;
+  } else {
+    // If not in app_metadata, check app_settings table for admin
+    try {
+      const { data: settingsData } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'admin_signup')
+        .single();
+          
+      if (settingsData?.value && 
+          typeof settingsData.value === 'object' && 
+          'completed' in settingsData.value && 
+          settingsData.value.completed === true &&
+          session.user.email === settingsData.value.admin_email) {
+        // This is the admin user from app_settings
+        role = 'admin';
+        
+        // Update the role in app_metadata for future logins
+        await supabase.rpc('set_user_role', { 
+          user_id: session.user.id, 
+          role: 'admin' 
+        });
+      }
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+    }
+  }
+
+  return role;
+}
+
+// Create user data object from session
+export function createUserData(session: any, role: UserRole): User {
+  return {
+    id: session.user.id,
+    email: session.user.email || '',
+    name: session.user.user_metadata.name || 'User',
+    role: role,
+  };
+}
+
+// Store user data in local storage
+export function storeUserData(userData: User): void {
+  localStorage.setItem("currentUser", JSON.stringify(userData));
+}
+
+// Clear user data from local storage
+export function clearUserData(): void {
+  localStorage.removeItem("currentUser");
+}
+
+// Get stored user data from local storage
+export function getStoredUserData(): User | null {
+  const storedUser = localStorage.getItem("currentUser");
+  if (storedUser) {
+    return JSON.parse(storedUser);
+  }
+  return null;
+}
