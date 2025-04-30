@@ -57,23 +57,31 @@ const LoginForm = () => {
     setIsSubmitting(true);
     
     try {
+      // Ajout de logs pour le débogage
+      console.log("Tentative de connexion avec:", email);
+      
+      // Authentification via le contexte d'authentification
       await login(email, password);
+      
+      console.log("Authentification réussie, préparation de la redirection...");
       
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté. Redirection vers votre tableau de bord...",
       });
       
-      // Fixed: Directly navigate without setTimeout to avoid state issues
+      // Redirection immédiate vers le tableau de bord
       navigate("/app/dashboard");
       
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
+      
       if (error.message && error.message.includes("Email not confirmed")) {
         setErrorMessage(
           "Veuillez vérifier votre e-mail pour confirmer votre compte avant de vous connecter."
         );
-        // Send another confirmation email
+        
+        // Renvoi automatique d'un e-mail de confirmation
         try {
           await supabase.auth.resend({
             type: 'signup',

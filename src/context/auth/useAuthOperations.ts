@@ -13,16 +13,20 @@ export const useAuthOperations = () => {
     setIsLoading(true);
     
     try {
-      // First try to authenticate with Supabase
+      console.log("Tentative d'authentification avec Supabase pour:", email);
+      
+      // Authentification avec Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (authError) {
-        // If user hasn't confirmed their email
+        console.error("Erreur d'authentification Supabase:", authError.message);
+        
+        // Si l'email n'est pas confirmé
         if (authError.message.includes("Email not confirmed")) {
-          // Try to resend verification email automatically
+          // Tentative de renvoi automatique de l'e-mail de vérification
           await supabase.auth.resend({
             type: 'signup',
             email
@@ -30,58 +34,69 @@ export const useAuthOperations = () => {
           throw new Error("Email not confirmed. A new verification email has been sent to your inbox.");
         }
         
-        // If invalid credentials, try mock data as fallback (for development)
+        // En mode développement, on peut tester avec des données fictives
         const user = MOCK_USERS.find(
           (u) => u.email === email && u.password === password
         );
         
         if (!user) {
-          throw new Error(authError.message || "Invalid email or password");
+          console.error("Aucun utilisateur correspondant trouvé");
+          throw new Error(authError.message || "E-mail ou mot de passe invalide");
         }
         
-        // Remove password from user object before storing
+        // Suppression du mot de passe avant stockage
         const { password: _, ...userWithoutPassword } = user;
         
         const userData = {
           ...userWithoutPassword
         };
         
+        console.log("Connexion avec données fictives:", userData);
         storeUserData(userData as User);
         
         toast({
-          title: "Logged in successfully (Mock)",
-          description: `Using development mock data with ${userData.role} role`,
+          title: "Connecté avec succès (Fictif)",
+          description: `Utilisation des données fictives avec le rôle ${userData.role}`,
         });
         
         return userData as User;
       } else {
-        // Supabase authentication successful
+        // Authentification Supabase réussie
         if (authData.session && authData.user) {
-          // Determine user role by checking the database
-          const role: UserRole = await determineUserRole(authData.session);
+          console.log("Session Supabase créée:", authData.session);
           
-          console.log("Setting role after login:", role);
-          
-          // Create user data
-          const userData = createUserData(authData.session, role);
-          
-          // Store user data
-          storeUserData(userData);
-          
-          toast({
-            title: "Logged in successfully",
-            description: `Welcome back${userData.name ? ', ' + userData.name : ''}!`,
-          });
-          
-          return userData;
+          // Détermination du rôle utilisateur
+          try {
+            const role: UserRole = await determineUserRole(authData.session);
+            console.log("Rôle déterminé après connexion:", role);
+            
+            // Création des données utilisateur
+            const userData = createUserData(authData.session, role);
+            console.log("Données utilisateur créées:", userData);
+            
+            // Stockage des données utilisateur
+            storeUserData(userData);
+            
+            toast({
+              title: "Connecté avec succès",
+              description: `Bienvenue${userData.name ? ', ' + userData.name : ''} !`,
+            });
+            
+            return userData;
+          } catch (roleError) {
+            console.error("Erreur lors de la détermination du rôle:", roleError);
+            throw new Error("Erreur lors de la récupération des informations utilisateur");
+          }
+        } else {
+          console.error("Données de session manquantes");
+          throw new Error("Erreur lors de la connexion: données de session manquantes");
         }
       }
-      
-      return null;
     } catch (error) {
+      console.error("Erreur de connexion complète:", error);
       toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "An error occurred",
+        title: "Échec de la connexion",
+        description: error instanceof Error ? error.message : "Une erreur s'est produite",
         variant: "destructive",
       });
       throw error;
