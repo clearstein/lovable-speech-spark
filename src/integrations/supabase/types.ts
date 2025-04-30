@@ -137,6 +137,44 @@ export type Database = {
         }
         Relationships: []
       }
+      patients: {
+        Row: {
+          active: boolean
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          id: string
+          name: string
+          therapist_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          id: string
+          name: string
+          therapist_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          id?: string
+          name?: string
+          therapist_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_therapist_id_fkey"
+            columns: ["therapist_id"]
+            isOneToOne: false
+            referencedRelation: "therapists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       therapists: {
         Row: {
           active: boolean

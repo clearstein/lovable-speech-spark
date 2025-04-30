@@ -7,51 +7,28 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { SearchIcon, UserPlus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-
-// Mock data for patients
-const mockPatients = [
-  {
-    id: "1",
-    name: "Alex Johnson",
-    age: 8,
-    therapist: "Dr. Emma Johnson",
-    status: "active",
-    lastSession: "2023-04-28"
-  },
-  {
-    id: "2",
-    name: "Lily Chen",
-    age: 6,
-    therapist: "Dr. Michael Brown",
-    status: "active",
-    lastSession: "2023-04-27"
-  },
-  {
-    id: "3",
-    name: "Ethan Smith",
-    age: 10,
-    therapist: "Sarah Williams",
-    status: "inactive",
-    lastSession: "2023-04-20"
-  }
-];
+import { getPatients } from "@/services/patient-service";
+import AddPatientDialog from "@/components/patients/AddPatientDialog";
+import { useAuth } from "@/context/AuthContext";
 
 const PatientsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { userRole } = useAuth();
 
   const { data: patients = [], isLoading } = useQuery({
     queryKey: ['patients'],
-    queryFn: () => {
-      // For now, return mock data
-      // In a real app, this would call an API
-      return Promise.resolve(mockPatients);
-    }
+    queryFn: getPatients
   });
 
   const filteredPatients = patients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    patient.therapist.toLowerCase().includes(searchQuery.toLowerCase())
+    patient.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAddPatient = () => {
+    setIsAddDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -68,10 +45,12 @@ const PatientsPage = () => {
           <h1 className="text-3xl font-bold">Patients</h1>
           <p className="text-muted-foreground">Manage speech therapy patients</p>
         </div>
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add Patient
-        </Button>
+        {userRole === "admin" && (
+          <Button onClick={handleAddPatient}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Patient
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -95,9 +74,8 @@ const PatientsPage = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Therapist</TableHead>
-                <TableHead>Last Session</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Date of Birth</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -109,12 +87,11 @@ const PatientsPage = () => {
                     <TableCell className="font-medium">
                       {patient.name}
                     </TableCell>
-                    <TableCell>{patient.age}</TableCell>
-                    <TableCell>{patient.therapist}</TableCell>
-                    <TableCell>{patient.lastSession}</TableCell>
+                    <TableCell>{patient.email}</TableCell>
+                    <TableCell>{patient.date_of_birth || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant={patient.status === "active" ? "default" : "secondary"}>
-                        {patient.status === "active" ? "Active" : "Inactive"}
+                      <Badge variant={patient.active ? "default" : "secondary"}>
+                        {patient.active ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -126,12 +103,14 @@ const PatientsPage = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10">
+                  <TableCell colSpan={5} className="text-center py-10">
                     <p className="text-muted-foreground">No patients found</p>
-                    <Button variant="outline" size="sm" className="mt-4">
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Add your first patient
-                    </Button>
+                    {userRole === "admin" && (
+                      <Button variant="outline" size="sm" className="mt-4" onClick={handleAddPatient}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add your first patient
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               )}
@@ -144,6 +123,11 @@ const PatientsPage = () => {
           </p>
         </CardFooter>
       </Card>
+
+      <AddPatientDialog 
+        isOpen={isAddDialogOpen} 
+        onClose={() => setIsAddDialogOpen(false)}
+      />
     </div>
   );
 };

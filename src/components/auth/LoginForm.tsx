@@ -58,6 +58,10 @@ const LoginForm = () => {
     
     try {
       await login(email, password);
+      toast({
+        title: "Login successful",
+        description: "You have been logged in. Redirecting to your dashboard...",
+      });
       navigate("/app/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
