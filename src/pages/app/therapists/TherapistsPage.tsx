@@ -6,61 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { SearchIcon, PlusCircle, Edit, Trash2, UserPlus } from "lucide-react";
-
-// Mock data for therapists
-const mockTherapists = [
-  {
-    id: "1",
-    name: "Dr. Emma Johnson",
-    license: "SLP12345",
-    specialty: "Pediatric Speech",
-    active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "2",
-    name: "Dr. Michael Brown",
-    license: "SLP56789",
-    specialty: "Fluency Disorders",
-    active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "3",
-    name: "Sarah Williams",
-    license: "SLP98765",
-    specialty: "Articulation Disorders",
-    active: true,
-    created_at: new Date().toISOString()
-  },
-  {
-    id: "4",
-    name: "Dr. James Wilson",
-    license: "SLP45678",
-    specialty: "Voice Disorders",
-    active: false,
-    created_at: new Date().toISOString()
-  }
-];
+import { SearchIcon, UserPlus, Edit, Trash2 } from "lucide-react";
+import { getTherapists } from "@/services/therapist-service";
+import AddTherapistDialog from "@/components/therapists/AddTherapistDialog";
+import EditTherapistDialog from "@/components/therapists/EditTherapistDialog";
+import DeleteTherapistDialog from "@/components/therapists/DeleteTherapistDialog";
+import { Therapist } from "@/types/therapist";
 
 const TherapistsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedTherapist, setSelectedTherapist] = useState<Therapist | null>(null);
 
   const { data: therapists = [], isLoading } = useQuery({
     queryKey: ['therapists'],
-    queryFn: () => {
-      // Simulate API delay
-      return new Promise(resolve => {
-        setTimeout(() => resolve(mockTherapists), 500);
-      });
-    }
+    queryFn: getTherapists
   });
 
-  const filteredTherapists = therapists.length > 0 ? therapists.filter(therapist => 
+  const filteredTherapists = therapists.filter(therapist => 
     therapist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (therapist.specialty && therapist.specialty.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) : [];
+  );
+
+  const handleOpenEditDialog = (therapist: Therapist) => {
+    setSelectedTherapist(therapist);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleOpenDeleteDialog = (therapist: Therapist) => {
+    setSelectedTherapist(therapist);
+    setIsDeleteDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -77,7 +55,7 @@ const TherapistsPage = () => {
           <h1 className="text-3xl font-bold">Therapists</h1>
           <p className="text-muted-foreground">Manage speech therapists</p>
         </div>
-        <Button>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
           Add Therapist
         </Button>
@@ -128,10 +106,18 @@ const TherapistsPage = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleOpenEditDialog(therapist)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleOpenDeleteDialog(therapist)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -142,8 +128,13 @@ const TherapistsPage = () => {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-10">
                     <p className="text-muted-foreground">No therapists found</p>
-                    <Button variant="outline" size="sm" className="mt-4">
-                      <PlusCircle className="mr-2 h-4 w-4" />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={() => setIsAddDialogOpen(true)}
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
                       Add your first therapist
                     </Button>
                   </TableCell>
@@ -154,10 +145,31 @@ const TherapistsPage = () => {
         </CardContent>
         <CardFooter className="flex justify-between border-t pt-4">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredTherapists.length || 0} therapists
+            Showing {filteredTherapists.length} therapists
           </p>
         </CardFooter>
       </Card>
+
+      {/* Add Therapist Dialog */}
+      <AddTherapistDialog 
+        isOpen={isAddDialogOpen} 
+        onClose={() => setIsAddDialogOpen(false)} 
+      />
+
+      {/* Edit Therapist Dialog */}
+      <EditTherapistDialog 
+        isOpen={isEditDialogOpen} 
+        onClose={() => setIsEditDialogOpen(false)}
+        therapist={selectedTherapist}
+      />
+
+      {/* Delete Therapist Dialog */}
+      <DeleteTherapistDialog 
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        therapistId={selectedTherapist?.id || null}
+        therapistName={selectedTherapist?.name || "this therapist"}
+      />
     </div>
   );
 };
