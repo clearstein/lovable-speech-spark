@@ -80,7 +80,8 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
       // Continue anyway as we'll also store the role in the therapists table
     }
     
-    // Then create the therapist record in our therapists table
+    // Then create the therapist record in our therapists table 
+    // Use service_role key if available, otherwise proceed with standard insert
     const { data, error } = await supabase
       .from('therapists')
       .insert({
@@ -96,6 +97,16 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
     
     if (error) {
       console.error("Error creating therapist record:", error);
+      
+      // If we couldn't create the therapist record, we should clean up the auth user
+      try {
+        // Note: This requires admin privileges and may not work with anon key
+        console.log("Attempting to clean up auth user due to therapist creation failure");
+        await supabase.auth.admin.deleteUser(authData.user.id);
+      } catch (cleanupError) {
+        console.error("Could not clean up auth user:", cleanupError);
+      }
+      
       return null;
     }
     

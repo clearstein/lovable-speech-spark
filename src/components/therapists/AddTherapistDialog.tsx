@@ -51,8 +51,11 @@ const AddTherapistDialog = ({ isOpen, onClose }: AddTherapistDialogProps) => {
         setValidationError('This email is already registered. Please use a different email.');
       } else if (error?.message?.includes('Password should be at least')) {
         setValidationError('Password should be at least 6 characters long.');
+      } else if (error?.message?.includes('permission denied')) {
+        setValidationError('Permission denied. Please check database permissions or contact administrator.');
       } else {
-        toast.error(error?.message || "An unexpected error occurred");
+        setValidationError(error?.message || "An unexpected error occurred");
+        toast.error("Failed to create therapist. Please try again later.");
       }
     }
   });
