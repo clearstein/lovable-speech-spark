@@ -58,11 +58,19 @@ const LoginForm = () => {
     
     try {
       await login(email, password);
+      
+      // Successfully logged in
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté. Redirection vers votre tableau de bord...",
       });
-      navigate("/app/dashboard");
+      
+      // Ensure we actually redirect regardless of what happens next
+      setTimeout(() => {
+        navigate("/app/dashboard");
+        setIsSubmitting(false);
+      }, 500);
+      
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       if (error.message.includes("Email not confirmed")) {
@@ -85,7 +93,6 @@ const LoginForm = () => {
       } else {
         setErrorMessage(error.message || "E-mail ou mot de passe invalide.");
       }
-    } finally {
       setIsSubmitting(false);
     }
   };
