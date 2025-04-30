@@ -1,12 +1,13 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { UserRound } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 
 interface PageHeaderProps {
   title: string;
   description: string;
   buttonText?: string;
+  buttonIcon?: LucideIcon;
   onButtonClick?: () => void;
 }
 
@@ -14,6 +15,7 @@ const PageHeader = ({
   title, 
   description, 
   buttonText, 
+  buttonIcon: ButtonIcon,
   onButtonClick 
 }: PageHeaderProps) => {
   return (
@@ -22,9 +24,9 @@ const PageHeader = ({
         <h1 className="text-3xl font-bold">{title}</h1>
         <p className="text-muted-foreground">{description}</p>
       </div>
-      {buttonText && (
+      {buttonText && onButtonClick && (
         <Button onClick={onButtonClick}>
-          <UserRound className="mr-2 h-4 w-4" />
+          {ButtonIcon && <ButtonIcon className="mr-2 h-4 w-4" />}
           {buttonText}
         </Button>
       )}
