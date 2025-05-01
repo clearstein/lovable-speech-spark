@@ -45,68 +45,87 @@ export async function createTherapist(therapistData: CreateTherapistData): Promi
   try {
     console.log("Creating therapist with data:", JSON.stringify(therapistData));
     
-    // First create the user account in Supabase Auth
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+    // Use the Supabase RPC function to properly create a therapist account
+    // This ensures proper identity setup with email provider
+    const { data, error } = await supabase.rpc('create_therapist', {
+      name: therapistData.name,
       email: therapistData.email,
       password: therapistData.password,
-      options: {
-        data: {
-          name: therapistData.name,
-          role: 'therapist' // Explicitly set role to 'therapist'
-        }
-      }
+      license: therapistData.license || null,
+      specialty: therapistData.specialty || null,
+      active: therapistData.active !== undefined ? therapistData.active : true
     });
     
-    if (signUpError) {
-      console.error("Error creating therapist auth account:", signUpError);
-      throw signUpError;
-    }
-    
-    if (!authData.user) {
-      throw new Error("Failed to create user account");
-    }
-    
-    console.log("Created auth user:", authData.user.id);
-    
-    // Set the user's role to therapist using RPC
-    try {
-      await supabase.rpc('set_user_role', { 
-        user_id: authData.user.id, 
-        role: 'therapist' 
-      });
-      console.log("Set role to therapist for user:", authData.user.id);
-    } catch (roleError) {
-      console.error("Error setting user role:", roleError);
-      // Continue anyway as we'll also store the role in the therapists table
-    }
-    
-    // Then create the therapist record in our therapists table
-    const { data, error } = await supabase
-      .from('therapists')
-      .insert({
-        id: authData.user.id,
-        name: therapistData.name,
-        email: therapistData.email,
-        license: therapistData.license || null,
-        specialty: therapistData.specialty || null,
-        active: therapistData.active !== undefined ? therapistData.active : true
-      })
-      .select()
-      .single();
-    
     if (error) {
-      console.error("Error creating therapist record:", error);
+      console.error("Error creating therapist using RPC:", error);
       
-      // If we couldn't create the therapist record, we should clean up the auth user
-      try {
-        // Note: This requires admin privileges and may not work with anon key
-        console.log("Attempting to clean up auth user due to therapist creation failure");
-        await supabase.auth.admin.deleteUser(authData.user.id);
-      } catch (cleanupError) {
-        console.error("Could not clean up auth user:", cleanupError);
+      // Fallback to legacy method if RPC fails
+      // First create the user account in Supabase Auth
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: therapistData.email,
+        password: therapistData.password,
+        options: {
+          data: {
+            name: therapistData.name,
+            role: 'therapist' // Explicitly set role to 'therapist'
+          },
+          emailRedirectTo: window.location.origin + '/auth/callback'
+        }
+      });
+      
+      if (signUpError) {
+        console.error("Error creating therapist auth account:", signUpError);
+        throw signUpError;
       }
       
-      return null;
+      if (!authData.user) {
+        throw new Error("Failed to create user account");
+      }
+      
+      console.log("Created auth user:", authData.user.id);
+      
+      // Set the user's role to therapist using RPC
+      try {
+        await supabase.rpc('set_user_role', { 
+          user_id: authData.user.id, 
+          role: 'therapist' 
+        });
+        console.log("Set role to therapist for user:", authData.user.id);
+      } catch (roleError) {
+        console.error("Error setting user role:", roleError);
+        // Continue anyway as we'll also store the role in the therapists table
+      }
+      
+      // Then create the therapist record in our therapists table
+      const { data: therapistRecord, error: therapistError } = await supabase
+        .from('therapists')
+        .insert({
+          id: authData.user.id,
+          name: therapistData.name,
+          email: therapistData.email,
+          license: therapistData.license || null,
+          specialty: therapistData.specialty || null,
+          active: therapistData.active !== undefined ? therapistData.active : true
+        })
+        .select()
+        .single();
+      
+      if (therapistError) {
+        console.error("Error creating therapist record:", therapistError);
+        
+        // If we couldn't create the therapist record, we should clean up the auth user
+        try {
+          // Note: This requires admin privileges and may not work with anon key
+          console.log("Attempting to clean up auth user due to therapist creation failure");
+          await supabase.auth.admin.deleteUser(authData.user.id);
+        } catch (cleanupError) {
+          console.error("Could not clean up auth user:", cleanupError);
+        }
+        
+        return null;
+      }
+      
+      return therapistRecord as Therapist;
     }
     
     return data as Therapist;

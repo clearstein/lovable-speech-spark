@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AppLayout from "./components/layout/AppLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
+import VerifySuccess from "./pages/auth/VerifySuccess";
 
 // Import new pages
 import TherapistsPage from "./pages/app/therapists/TherapistsPage";
@@ -32,6 +33,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/verify-success" element={<VerifySuccess />} />
 
             {/* Protected Routes */}
             <Route path="/app" element={<AppLayout />}>

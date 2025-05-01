@@ -96,9 +96,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [setIsLoading]);
 
   const handleLogin = async (email: string, password: string) => {
-    const user = await login(email, password);
-    setCurrentUser(user);
-    return;
+    try {
+      const user = await login(email, password);
+      setCurrentUser(user);
+      return Promise.resolve(); // Explicitly resolve the promise
+    } catch (error) {
+      // Make sure we're properly rejecting the promise on error
+      return Promise.reject(error);
+    }
   };
 
   const handleLogout = () => {
@@ -107,9 +112,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleSignupAdmin = async (email: string, password: string, name: string) => {
-    const user = await signupAdmin(email, password, name);
-    setCurrentUser(user);
-    return;
+    try {
+      const user = await signupAdmin(email, password, name);
+      setCurrentUser(user);
+      return Promise.resolve(); // Explicitly resolve the promise
+    } catch (error) {
+      return Promise.reject(error);
+    }
   };
 
   const value = {
