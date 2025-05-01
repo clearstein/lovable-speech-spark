@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { User, UserRole } from "@/types/auth";
+import { UserProfile } from "@/types/app";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MOCK_USERS } from "./types";
@@ -13,20 +14,20 @@ export const useAuthOperations = () => {
     setIsLoading(true);
     
     try {
-      console.log("Tentative d'authentification avec Supabase pour:", email);
+      console.log("Attempting authentication with Supabase for:", email);
       
-      // Authentification avec Supabase
+      // Authenticate with Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (authError) {
-        console.error("Erreur d'authentification Supabase:", authError.message);
+        console.error("Supabase authentication error:", authError.message);
         
-        // Si l'email n'est pas confirmé
+        // If the email isn't confirmed
         if (authError.message.includes("Email not confirmed")) {
-          // Tentative de renvoi automatique de l'e-mail de vérification
+          // Attempt to automatically resend verification email
           await supabase.auth.resend({
             type: 'signup',
             email
@@ -34,69 +35,69 @@ export const useAuthOperations = () => {
           throw new Error("Email not confirmed. A new verification email has been sent to your inbox.");
         }
         
-        // En mode développement, on peut tester avec des données fictives
+        // In development mode, we can test with mock data
         const user = MOCK_USERS.find(
           (u) => u.email === email && u.password === password
         );
         
         if (!user) {
-          console.error("Aucun utilisateur correspondant trouvé");
-          throw new Error(authError.message || "E-mail ou mot de passe invalide");
+          console.error("No matching user found");
+          throw new Error(authError.message || "Invalid email or password");
         }
         
-        // Suppression du mot de passe avant stockage
+        // Remove password before storage
         const { password: _, ...userWithoutPassword } = user;
         
         const userData = {
           ...userWithoutPassword
         };
         
-        console.log("Connexion avec données fictives:", userData);
-        storeUserData(userData as User);
+        console.log("Logged in with mock data:", userData);
+        storeUserData(userData);
         
         toast({
-          title: "Connecté avec succès (Fictif)",
-          description: `Utilisation des données fictives avec le rôle ${userData.role}`,
+          title: "Successfully logged in (Mock)",
+          description: `Using mock data with role ${userData.role}`,
         });
         
-        return userData as User;
+        return userData as UserProfile;
       } else {
-        // Authentification Supabase réussie
+        // Successful Supabase authentication
         if (authData.session && authData.user) {
-          console.log("Session Supabase créée:", authData.session);
+          console.log("Supabase session created:", authData.session);
           
-          // Détermination du rôle utilisateur
+          // Determine user role
           try {
-            const role: UserRole = await determineUserRole(authData.session);
-            console.log("Rôle déterminé après connexion:", role);
+            const role = await determineUserRole(authData.session);
+            console.log("Role determined after login:", role);
             
-            // Création des données utilisateur
-            const userData = createUserData(authData.session, role);
-            console.log("Données utilisateur créées:", userData);
+            // Create user data with profile info
+            const userData = await createUserData(authData.session, role);
+            console.log("User data created:", userData);
             
-            // Stockage des données utilisateur
+            // Store user data
             storeUserData(userData);
             
             toast({
-              title: "Connecté avec succès",
-              description: `Bienvenue${userData.name ? ', ' + userData.name : ''} !`,
+              title: "Successfully logged in",
+              description: `Welcome${userData.name ? ', ' + userData.name : ''}!`,
             });
             
-            return userData;
+            return userData as UserProfile;
           } catch (roleError) {
-            console.error("Erreur lors de la détermination du rôle:", roleError);
-            throw new Error("Erreur lors de la récupération des informations utilisateur");
+            console.error("Error determining role:", roleError);
+            throw new Error("Error retrieving user information");
           }
         } else {
-          console.error("Données de session manquantes");
-          throw new Error("Erreur lors de la connexion: données de session manquantes");
+          console.error("Missing session data");
+          throw new Error("Login error: missing session data");
         }
       }
     } catch (error) {
-      console.error("Erreur de connexion complète:", error);
+      console.error("Complete login error:", error);
       toast({
-        title: "Échec de la connexion",
-        description: error instanceof Error ? error.message : "Une erreur s'est produite",
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
       throw error;
@@ -109,33 +110,14 @@ export const useAuthOperations = () => {
     setIsLoading(true);
     
     try {
-      // Check if admin_signup record exists in app_settings table
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'admin_signup');
-      
-      // If no settings record exists, we need to create it
-      if (settingsError || !settingsData || settingsData.length === 0) {
-        // Create the admin_signup setting since it doesn't exist
-        await supabase
-          .from('app_settings')
-          .insert({ key: 'admin_signup', value: { completed: false } });
-      } else {
-        // Check if an admin has already been set up
-        const settingsValue = settingsData[0]?.value as Record<string, unknown>;
-        if (typeof settingsValue === 'object' && settingsValue && 'completed' in settingsValue && settingsValue.completed === true) {
-          throw new Error("Admin signup has already been completed");
-        }
-      }
-      
       // Create the admin user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name
+            name,
+            role: 'admin'
           }
         }
       });
@@ -148,24 +130,14 @@ export const useAuthOperations = () => {
         throw new Error("Failed to create admin user");
       }
       
-      // Set the user's role to admin
-      await supabase.rpc('set_user_role', { 
-        user_id: authData.user.id, 
-        role: 'admin' 
-      });
-      
-      // Update the admin_signup setting to indicate that it's been completed and store admin email
-      await supabase
-        .from('app_settings')
-        .update({ value: { completed: true, admin_email: email } })
-        .eq('key', 'admin_signup');
-      
-      // Create user data
-      const userData: User = {
+      // Create user profile data
+      const userData: UserProfile = {
         id: authData.user.id,
         email: authData.user.email || '',
         name: name,
         role: 'admin',
+        theme: 'light',
+        created_at: new Date().toISOString()
       };
       
       // Store user data

@@ -6,6 +6,7 @@ import TherapistDashboard from "./TherapistDashboard";
 import PatientDashboard from "./PatientDashboard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; 
 import { AlertTriangle } from "lucide-react";
+import { UserProfile } from "@/types/app";
 
 const Dashboard = () => {
   const { userRole, currentUser } = useAuth();
@@ -33,11 +34,11 @@ const Dashboard = () => {
   // Render the appropriate dashboard based on user role
   switch (userRole) {
     case "admin":
-      return <AdminDashboard />;
+      return <AdminDashboard user={currentUser as UserProfile} />;
     case "therapist":
-      return <TherapistDashboard />;
+      return <TherapistDashboard user={currentUser as UserProfile} />;
     case "patient":
-      return <PatientDashboard />;
+      return <PatientDashboard user={currentUser as UserProfile} />;
     default:
       return (
         <div className="flex items-center justify-center h-[80vh] text-center">

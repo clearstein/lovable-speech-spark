@@ -1,8 +1,8 @@
 
-import { User, UserRole } from "@/types/auth";
+import { UserRole, UserProfile, Therapist, Patient, Admin } from "@/types/app";
 
 export interface AuthContextType {
-  currentUser: User | null;
+  currentUser: UserProfile | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -19,6 +19,8 @@ export const MOCK_USERS = [
     password: "admin123",
     role: "admin" as UserRole,
     name: "Admin User",
+    theme: "light",
+    created_at: new Date().toISOString(),
   },
   {
     id: "2",
@@ -26,8 +28,11 @@ export const MOCK_USERS = [
     password: "therapist123",
     role: "therapist" as UserRole,
     name: "Dr. Emma Johnson",
-    licenceTier: "premium",
+    license_tier: "premium",
     active: true,
+    specialty: "Pediatric Speech",
+    theme: "light",
+    created_at: new Date().toISOString(),
   },
   {
     id: "3", 
@@ -35,7 +40,9 @@ export const MOCK_USERS = [
     password: "patient123",
     role: "patient" as UserRole,
     name: "Alex Smith",
-    therapistId: "2",
-    avatar: "avatar1",
+    therapist_id: "2",
+    date_of_birth: "2015-06-12",
+    theme: "light",
+    created_at: new Date().toISOString(),
   }
 ];

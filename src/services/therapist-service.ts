@@ -1,12 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Therapist, CreateTherapistData, UpdateTherapistData } from "@/types/therapist";
+import { Therapist } from "@/types/app";
 
-export async function getTherapists(): Promise<Therapist[]> {
+export async function getAllTherapists(): Promise<Therapist[]> {
   try {
     const { data, error } = await supabase
-      .from('therapists')
-      .select('*')
+      .from('user_profiles')
+      .select(`
+        *,
+        therapists(*)
+      `)
+      .eq('role', 'therapist')
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -14,7 +18,12 @@ export async function getTherapists(): Promise<Therapist[]> {
       return [];
     }
     
-    return data as Therapist[];
+    // Transform the data to match our Therapist type
+    return data.map(profile => ({
+      ...profile,
+      ...profile.therapists[0],
+      therapists: undefined
+    })) as Therapist[];
   } catch (error) {
     console.error("Exception fetching therapists:", error);
     return [];
@@ -24,9 +33,13 @@ export async function getTherapists(): Promise<Therapist[]> {
 export async function getTherapistById(id: string): Promise<Therapist | null> {
   try {
     const { data, error } = await supabase
-      .from('therapists')
-      .select('*')
+      .from('user_profiles')
+      .select(`
+        *,
+        therapists(*)
+      `)
       .eq('id', id)
+      .eq('role', 'therapist')
       .single();
     
     if (error) {
@@ -34,161 +47,95 @@ export async function getTherapistById(id: string): Promise<Therapist | null> {
       return null;
     }
     
-    return data as Therapist;
+    // Transform the data to match our Therapist type
+    return {
+      ...data,
+      ...data.therapists[0],
+      therapists: undefined
+    } as Therapist;
   } catch (error) {
     console.error("Exception fetching therapist:", error);
     return null;
   }
 }
 
-export async function createTherapist(therapistData: CreateTherapistData): Promise<Therapist | null> {
+export async function createTherapist(therapistData: {
+  email: string;
+  name: string;
+  password: string;
+  license_tier?: string;
+  specialty?: string;
+}): Promise<Therapist | null> {
   try {
-    console.log("Creating therapist with data:", JSON.stringify(therapistData));
-    
-    // Use the Supabase RPC function to properly create a therapist account
-    // This ensures proper identity setup with email provider
-    const { data, error } = await supabase.rpc('create_therapist', {
-      name: therapistData.name,
-      email: therapistData.email,
-      password: therapistData.password,
-      license: therapistData.license || null,
-      specialty: therapistData.specialty || null,
-      active: therapistData.active !== undefined ? therapistData.active : true
-    });
+    // Use the RPC function to create a therapist account
+    const { data, error } = await supabase.rpc(
+      'create_therapist',
+      {
+        email: therapistData.email,
+        name: therapistData.name,
+        password: therapistData.password,
+        license_tier: therapistData.license_tier || 'basic',
+        specialty: therapistData.specialty || null
+      }
+    );
     
     if (error) {
-      console.error("Error creating therapist using RPC:", error);
-      
-      // Fallback to legacy method if RPC fails
-      // First create the user account in Supabase Auth
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: therapistData.email,
-        password: therapistData.password,
-        options: {
-          data: {
-            name: therapistData.name,
-            role: 'therapist' // Explicitly set role to 'therapist'
-          },
-          emailRedirectTo: window.location.origin + '/auth/callback'
-        }
-      });
-      
-      if (signUpError) {
-        console.error("Error creating therapist auth account:", signUpError);
-        throw signUpError;
-      }
-      
-      if (!authData.user) {
-        throw new Error("Failed to create user account");
-      }
-      
-      console.log("Created auth user:", authData.user.id);
-      
-      // Set the user's role to therapist using RPC
-      try {
-        await supabase.rpc('set_user_role', { 
-          user_id: authData.user.id, 
-          role: 'therapist' 
-        });
-        console.log("Set role to therapist for user:", authData.user.id);
-      } catch (roleError) {
-        console.error("Error setting user role:", roleError);
-        // Continue anyway as we'll also store the role in the therapists table
-      }
-      
-      // Then create the therapist record in our therapists table
-      const { data: therapistRecord, error: therapistError } = await supabase
-        .from('therapists')
-        .insert({
-          id: authData.user.id,
-          name: therapistData.name,
-          email: therapistData.email,
-          license: therapistData.license || null,
-          specialty: therapistData.specialty || null,
-          active: therapistData.active !== undefined ? therapistData.active : true
-        })
-        .select()
-        .single();
-      
-      if (therapistError) {
-        console.error("Error creating therapist record:", therapistError);
-        
-        // If we couldn't create the therapist record, we should clean up the auth user
-        try {
-          // Note: This requires admin privileges and may not work with anon key
-          console.log("Attempting to clean up auth user due to therapist creation failure");
-          await supabase.auth.admin.deleteUser(authData.user.id);
-        } catch (cleanupError) {
-          console.error("Could not clean up auth user:", cleanupError);
-        }
-        
-        return null;
-      }
-      
-      return therapistRecord as Therapist;
+      console.error("Error creating therapist:", error);
+      return null;
     }
     
-    return data as Therapist;
+    // Fetch the newly created therapist profile
+    const therapistId = data;
+    return await getTherapistById(therapistId);
   } catch (error) {
     console.error("Exception creating therapist:", error);
     return null;
   }
 }
 
-export async function updateTherapist(therapistData: UpdateTherapistData): Promise<Therapist | null> {
+export async function updateTherapist(therapistData: {
+  id: string;
+  name?: string;
+  license_tier?: string;
+  specialty?: string | null;
+  active?: boolean;
+}): Promise<Therapist | null> {
   try {
-    const { data, error } = await supabase
-      .from('therapists')
-      .update({
-        name: therapistData.name,
-        license: therapistData.license,
-        specialty: therapistData.specialty,
-        active: therapistData.active
-      })
-      .eq('id', therapistData.id)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error updating therapist:", error);
-      return null;
+    // First update the user profile
+    if (therapistData.name) {
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({ name: therapistData.name })
+        .eq('id', therapistData.id);
+      
+      if (profileError) {
+        console.error("Error updating therapist profile:", profileError);
+        return null;
+      }
     }
     
-    return data as Therapist;
+    // Then update the therapist details
+    const therapistUpdate: any = {};
+    if (therapistData.license_tier !== undefined) therapistUpdate.license_tier = therapistData.license_tier;
+    if (therapistData.specialty !== undefined) therapistUpdate.specialty = therapistData.specialty;
+    if (therapistData.active !== undefined) therapistUpdate.active = therapistData.active;
+    
+    if (Object.keys(therapistUpdate).length > 0) {
+      const { error: therapistError } = await supabase
+        .from('therapists')
+        .update(therapistUpdate)
+        .eq('id', therapistData.id);
+      
+      if (therapistError) {
+        console.error("Error updating therapist details:", therapistError);
+        return null;
+      }
+    }
+    
+    // Fetch the updated therapist
+    return await getTherapistById(therapistData.id);
   } catch (error) {
     console.error("Exception updating therapist:", error);
     return null;
-  }
-}
-
-export async function deleteTherapist(id: string): Promise<boolean> {
-  try {
-    // First delete from therapists table
-    const { error: dbError } = await supabase
-      .from('therapists')
-      .delete()
-      .eq('id', id);
-    
-    if (dbError) {
-      console.error("Error deleting therapist from database:", dbError);
-      return false;
-    }
-    
-    // Also delete the user from auth (if you have permission)
-    try {
-      const { error: authError } = await supabase.auth.admin.deleteUser(id);
-      if (authError) {
-        console.error("Error deleting therapist auth account (may require admin):", authError);
-        // Continue even if auth deletion fails, as this might require admin API
-      }
-    } catch (authDeleteError) {
-      console.error("Exception deleting therapist auth account:", authDeleteError);
-      // Continue anyway as we've deleted from therapists table
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Exception deleting therapist:", error);
-    return false;
   }
 }

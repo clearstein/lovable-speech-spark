@@ -1,5 +1,5 @@
 
-import { User, UserRole } from "@/types/auth";
+import { UserRole } from "@/types/app";
 import { supabase } from "@/integrations/supabase/client";
 
 // Determine user role from Supabase session and other sources
@@ -14,63 +14,23 @@ export async function determineUserRole(session: any): Promise<UserRole> {
     return session.user.app_metadata.role as UserRole;
   }
   
-  // If no role in app_metadata, check therapist table
+  // If no role in app_metadata, check user_profiles table
   try {
-    const { data: therapistData, error: therapistError } = await supabase
-      .from('therapists')
-      .select('*')
+    const { data: profileData, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('role')
       .eq('id', session.user.id)
       .single();
       
-    if (therapistData && !therapistError) {
-      console.log("Found therapist record:", therapistData);
-      
-      // Set the metadata role for future logins
-      try {
-        await supabase.rpc('set_user_role', { 
-          user_id: session.user.id, 
-          role: 'therapist' 
-        });
-        console.log("Set role to therapist for user:", session.user.id);
-      } catch (roleError) {
-        console.error("Error setting user role:", roleError);
-      }
-      
-      return 'therapist';
+    if (profileData && !profileError) {
+      console.log("Found user profile record:", profileData);
+      return profileData.role as UserRole;
     }
   } catch (error) {
-    console.error("Error checking therapist table:", error);
+    console.error("Error checking user_profiles table:", error);
   }
   
-  // Check patient table
-  try {
-    const { data: patientData, error: patientError } = await supabase
-      .from('patients')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-    
-    if (patientData && !patientError) {
-      console.log("Found patient record:", patientData);
-      
-      // Set the metadata role for future logins
-      try {
-        await supabase.rpc('set_user_role', { 
-          user_id: session.user.id, 
-          role: 'patient' 
-        });
-        console.log("Set role to patient for user:", session.user.id);
-      } catch (roleError) {
-        console.error("Error setting user role:", roleError);
-      }
-      
-      return 'patient';
-    }
-  } catch (error) {
-    console.error("Error checking patient table:", error);
-  }
-  
-  // If we've fallen through to here, check for mock users
+  // Check for mock users
   const storedUser = getStoredUserData();
   if (storedUser && storedUser.role) {
     console.log("Using role from stored user:", storedUser.role);
@@ -82,17 +42,33 @@ export async function determineUserRole(session: any): Promise<UserRole> {
 }
 
 // Create user data object from session
-export function createUserData(session: any, role: UserRole): User {
-  return {
-    id: session.user.id,
-    email: session.user.email || '',
-    name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-    role: role,
-  };
+export async function createUserData(session: any, role: UserRole) {
+  // Fetch the user profile from the database
+  const { data: profileData, error: profileError } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+    
+  if (profileError) {
+    console.error("Error fetching user profile:", profileError);
+    
+    // Fall back to basic user info if profile can't be fetched
+    return {
+      id: session.user.id,
+      email: session.user.email || '',
+      name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+      role: role,
+      theme: 'light',
+      created_at: new Date().toISOString()
+    };
+  }
+  
+  return profileData;
 }
 
 // Store user data in local storage
-export function storeUserData(userData: User): void {
+export function storeUserData(userData: any): void {
   localStorage.setItem("currentUser", JSON.stringify(userData));
 }
 
@@ -102,7 +78,7 @@ export function clearUserData(): void {
 }
 
 // Get stored user data from local storage
-export function getStoredUserData(): User | null {
+export function getStoredUserData(): any | null {
   const storedUser = localStorage.getItem("currentUser");
   if (storedUser) {
     return JSON.parse(storedUser);

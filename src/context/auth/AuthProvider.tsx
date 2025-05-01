@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, UserRole } from "@/types/auth";
+import { UserProfile, UserRole } from "@/types/app";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthContextType } from "./types";
 import { useAuthOperations } from "./useAuthOperations";
@@ -11,7 +11,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   children 
 }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const { isLoading, setIsLoading, login, logout, signupAdmin } = useAuthOperations();
 
   useEffect(() => {
@@ -28,8 +28,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             const role: UserRole = await determineUserRole(session);
             console.log("Determined user role:", role);
             
-            // Create user data
-            const userData = createUserData(session, role);
+            // Create user data with profile info
+            const userData = await createUserData(session, role);
+            console.log("Created user data:", userData);
             
             // Update state and storage
             setCurrentUser(userData);
@@ -57,8 +58,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             const role: UserRole = await determineUserRole(session);
             console.log("Determined user role from session:", role);
             
-            // Create user data
-            const userData = createUserData(session, role);
+            // Create user data with profile info
+            const userData = await createUserData(session, role);
+            console.log("Created user data from session:", userData);
             
             // Update state and storage
             setCurrentUser(userData);

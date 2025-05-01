@@ -1,12 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Patient, CreatePatientData, UpdatePatientData } from "@/types/patient";
+import { Patient } from "@/types/app";
 
-export async function getPatients(): Promise<Patient[]> {
+export async function getAllPatients(): Promise<Patient[]> {
   try {
     const { data, error } = await supabase
-      .from('patients')
-      .select('*')
+      .from('user_profiles')
+      .select(`
+        *,
+        patients(*)
+      `)
+      .eq('role', 'patient')
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -14,9 +18,42 @@ export async function getPatients(): Promise<Patient[]> {
       return [];
     }
     
-    return data as Patient[];
+    // Transform the data to match our Patient type
+    return data.map(profile => ({
+      ...profile,
+      ...profile.patients[0],
+      patients: undefined
+    })) as Patient[];
   } catch (error) {
     console.error("Exception fetching patients:", error);
+    return [];
+  }
+}
+
+export async function getPatientsByTherapistId(therapistId: string): Promise<Patient[]> {
+  try {
+    const { data, error } = await supabase
+      .from('patients')
+      .select(`
+        *,
+        user_profiles(*)
+      `)
+      .eq('therapist_id', therapistId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching patients by therapist:", error);
+      return [];
+    }
+    
+    // Transform the data to match our Patient type
+    return data.map(patient => ({
+      ...patient.user_profiles,
+      ...patient,
+      user_profiles: undefined
+    })) as Patient[];
+  } catch (error) {
+    console.error("Exception fetching patients by therapist:", error);
     return [];
   }
 }
@@ -24,9 +61,13 @@ export async function getPatients(): Promise<Patient[]> {
 export async function getPatientById(id: string): Promise<Patient | null> {
   try {
     const { data, error } = await supabase
-      .from('patients')
-      .select('*')
+      .from('user_profiles')
+      .select(`
+        *,
+        patients(*)
+      `)
       .eq('id', id)
+      .eq('role', 'patient')
       .single();
     
     if (error) {
@@ -34,132 +75,95 @@ export async function getPatientById(id: string): Promise<Patient | null> {
       return null;
     }
     
-    return data as Patient;
+    // Transform the data to match our Patient type
+    return {
+      ...data,
+      ...data.patients[0],
+      patients: undefined
+    } as Patient;
   } catch (error) {
     console.error("Exception fetching patient:", error);
     return null;
   }
 }
 
-export async function createPatient(patientData: CreatePatientData): Promise<Patient | null> {
+export async function createPatient(patientData: {
+  email: string;
+  name: string;
+  password: string;
+  therapist_id?: string;
+  date_of_birth?: string;
+}): Promise<Patient | null> {
   try {
-    console.log("Creating patient with data:", JSON.stringify(patientData));
-    
-    // First create the user account in Supabase Auth
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email: patientData.email,
-      password: patientData.password,
-      options: {
-        data: {
-          name: patientData.name,
-          role: 'patient' // Explicitly set role to 'patient'
-        }
-      }
-    });
-    
-    if (signUpError) {
-      console.error("Error creating patient auth account:", signUpError);
-      throw signUpError;
-    }
-    
-    if (!authData.user) {
-      throw new Error("Failed to create user account");
-    }
-    
-    console.log("Created auth user:", authData.user.id);
-    
-    // Set the user's role to patient using RPC
-    try {
-      await supabase.rpc('set_user_role', { 
-        user_id: authData.user.id, 
-        role: 'patient' 
-      });
-      console.log("Set role to patient for user:", authData.user.id);
-    } catch (roleError) {
-      console.error("Error setting user role:", roleError);
-      // Continue anyway as we'll also store the role in the patients table
-    }
-    
-    // Then create the patient record in our patients table
-    const { data, error } = await supabase
-      .from('patients')
-      .insert({
-        id: authData.user.id,
-        name: patientData.name,
+    // Use the RPC function to create a patient account
+    const { data, error } = await supabase.rpc(
+      'create_patient',
+      {
         email: patientData.email,
-        date_of_birth: patientData.date_of_birth || null,
+        name: patientData.name,
+        password: patientData.password,
         therapist_id: patientData.therapist_id || null,
-        active: patientData.active !== undefined ? patientData.active : true
-      })
-      .select()
-      .single();
+        date_of_birth: patientData.date_of_birth || null
+      }
+    );
     
     if (error) {
-      console.error("Error creating patient record:", error);
+      console.error("Error creating patient:", error);
       return null;
     }
     
-    return data as Patient;
+    // Fetch the newly created patient profile
+    const patientId = data;
+    return await getPatientById(patientId);
   } catch (error) {
     console.error("Exception creating patient:", error);
     return null;
   }
 }
 
-export async function updatePatient(patientData: UpdatePatientData): Promise<Patient | null> {
+export async function updatePatient(patientData: {
+  id: string;
+  name?: string;
+  therapist_id?: string | null;
+  date_of_birth?: string | null;
+  notes?: string | null;
+}): Promise<Patient | null> {
   try {
-    const { data, error } = await supabase
-      .from('patients')
-      .update({
-        name: patientData.name,
-        date_of_birth: patientData.date_of_birth,
-        therapist_id: patientData.therapist_id,
-        active: patientData.active
-      })
-      .eq('id', patientData.id)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error updating patient:", error);
-      return null;
+    // First update the user profile
+    if (patientData.name) {
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({ name: patientData.name })
+        .eq('id', patientData.id);
+      
+      if (profileError) {
+        console.error("Error updating patient profile:", profileError);
+        return null;
+      }
     }
     
-    return data as Patient;
+    // Then update the patient details
+    const patientUpdate: any = {};
+    if (patientData.therapist_id !== undefined) patientUpdate.therapist_id = patientData.therapist_id;
+    if (patientData.date_of_birth !== undefined) patientUpdate.date_of_birth = patientData.date_of_birth;
+    if (patientData.notes !== undefined) patientUpdate.notes = patientData.notes;
+    
+    if (Object.keys(patientUpdate).length > 0) {
+      const { error: patientError } = await supabase
+        .from('patients')
+        .update(patientUpdate)
+        .eq('id', patientData.id);
+      
+      if (patientError) {
+        console.error("Error updating patient details:", patientError);
+        return null;
+      }
+    }
+    
+    // Fetch the updated patient
+    return await getPatientById(patientData.id);
   } catch (error) {
     console.error("Exception updating patient:", error);
     return null;
-  }
-}
-
-export async function deletePatient(id: string): Promise<boolean> {
-  try {
-    // First delete from patients table
-    const { error: dbError } = await supabase
-      .from('patients')
-      .delete()
-      .eq('id', id);
-    
-    if (dbError) {
-      console.error("Error deleting patient from database:", dbError);
-      return false;
-    }
-    
-    // Also delete the user from auth (if you have permission)
-    try {
-      const { error: authError } = await supabase.auth.admin.deleteUser(id);
-      if (authError) {
-        console.error("Error deleting patient auth account (may require admin):", authError);
-        // Continue even if auth deletion fails, as this might require admin API
-      }
-    } catch (authDeleteError) {
-      console.error("Exception deleting patient auth account:", authDeleteError);
-      // Continue anyway as we've deleted from patients table
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Exception deleting patient:", error);
-    return false;
   }
 }
